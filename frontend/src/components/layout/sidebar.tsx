@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useEffect, JSX } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import StockSearch from "@/components/trading/stock-search";
 
 type NavItem = {
   name: string;
   path: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
 };
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -44,6 +46,11 @@ export default function Sidebar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMobileOpen]);
+
+  const handleStockSearch = (symbol: string) => {
+    router.push(`/dashboard/chart/${symbol}/D`);
+    setIsMobileOpen(false); // Close mobile sidebar after navigation
+  };
 
   const navigation: NavItem[] = [
     {
@@ -87,6 +94,26 @@ export default function Sidebar() {
       ),
     },
     {
+      name: "Trading",
+      path: "/dashboard/trading",
+      icon: (
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+          />
+        </svg>
+      ),
+    },
+    {
       name: "Markets",
       path: "/dashboard/markets",
       icon: (
@@ -101,7 +128,7 @@ export default function Sidebar() {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
           />
         </svg>
       ),
@@ -255,6 +282,14 @@ export default function Sidebar() {
             </Link>
           </div>
 
+          {/* Stock search in sidebar */}
+          <div className="px-4 py-4 border-b border-gray-200">
+            <StockSearch
+              onSearch={handleStockSearch}
+              placeholder="Search stocks..."
+            />
+          </div>
+
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
@@ -283,6 +318,26 @@ export default function Sidebar() {
               );
             })}
           </nav>
+
+          {/* Quick access stocks */}
+          <div className="px-3 py-4 border-t border-gray-200">
+            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Popular Stocks
+            </h3>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META"].map(
+                (symbol) => (
+                  <button
+                    key={symbol}
+                    onClick={() => handleStockSearch(symbol)}
+                    className="px-3 py-1 text-xs text-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded"
+                  >
+                    {symbol}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
 
           {/* Sidebar footer */}
           <div className="p-4 border-t border-gray-200">
