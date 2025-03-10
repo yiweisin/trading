@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/yiweisin/Documents/GitHub/trading/backend/backend.Core/backend.Core.csproj": {}
+    "/Users/yiweisin/Documents/GitHub/trading/backend/backend.csproj": {}
   },
   "projects": {
-    "/Users/yiweisin/Documents/GitHub/trading/backend/backend.Core/backend.Core.csproj": {
+    "/Users/yiweisin/Documents/GitHub/trading/backend/backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/yiweisin/Documents/GitHub/trading/backend/backend.Core/backend.Core.csproj",
-        "projectName": "backend.Core",
-        "projectPath": "/Users/yiweisin/Documents/GitHub/trading/backend/backend.Core/backend.Core.csproj",
+        "projectUniqueName": "/Users/yiweisin/Documents/GitHub/trading/backend/backend.csproj",
+        "projectName": "backend",
+        "projectPath": "/Users/yiweisin/Documents/GitHub/trading/backend/backend.csproj",
         "packagesPath": "/Users/yiweisin/.nuget/packages/",
-        "outputPath": "/Users/yiweisin/Documents/GitHub/trading/backend/backend.Core/obj/",
+        "outputPath": "/Users/yiweisin/Documents/GitHub/trading/backend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/yiweisin/.nuget/NuGet/NuGet.Config"
@@ -44,9 +44,21 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "Microsoft.Extensions.DependencyInjection.Abstractions": {
+            "AWSSDK.DynamoDBv2": {
               "target": "Package",
-              "version": "[9.0.2, )"
+              "version": "[3.7.405.36, )"
+            },
+            "AWSSDK.Extensions.NETCore.Setup": {
+              "target": "Package",
+              "version": "[3.7.400, )"
+            },
+            "AWSSDK.S3": {
+              "target": "Package",
+              "version": "[3.7.415.14, )"
+            },
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[9.0.1, )"
             }
           },
           "imports": [
@@ -61,6 +73,9 @@
           "assetTargetFallback": true,
           "warn": true,
           "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
