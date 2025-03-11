@@ -34,11 +34,6 @@ export default function Header() {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Search Component */}
-          <div className="hidden md:block relative w-64">
-            <StockSearch />
-          </div>
-
           {/* Notifications */}
           <div className="relative">
             <button

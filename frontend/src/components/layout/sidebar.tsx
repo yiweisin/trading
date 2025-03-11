@@ -114,26 +114,6 @@ export default function Sidebar() {
       ),
     },
     {
-      name: "Markets",
-      path: "/dashboard/markets",
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-          />
-        </svg>
-      ),
-    },
-    {
       name: "Watchlist",
       path: "/dashboard/watchlist",
       icon: (
@@ -155,46 +135,6 @@ export default function Sidebar() {
             strokeLinejoin="round"
             strokeWidth={2}
             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Alerts",
-      path: "/dashboard/alerts",
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "News",
-      path: "/dashboard/news",
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
           />
         </svg>
       ),
@@ -319,34 +259,21 @@ export default function Sidebar() {
             })}
           </nav>
 
-          {/* Quick access stocks */}
-          <div className="px-3 py-4 border-t border-gray-200">
-            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Popular Stocks
-            </h3>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META"].map(
-                (symbol) => (
-                  <button
-                    key={symbol}
-                    onClick={() => handleStockSearch(symbol)}
-                    className="px-3 py-1 text-xs text-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded"
-                  >
-                    {symbol}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-
           {/* Sidebar footer */}
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-gray-300"></div>
-              </div>
+              <Link href="/dashboard/profile" className="flex-shrink-0 group">
+                <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-sm text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                  JD
+                </div>
+              </Link>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">John Doe</p>
+                <Link
+                  href="/dashboard/profile"
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600 block"
+                >
+                  John Doe
+                </Link>
                 <button className="text-xs font-medium text-gray-500 hover:text-gray-700">
                   Sign out
                 </button>
