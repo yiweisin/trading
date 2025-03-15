@@ -1,13 +1,5 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Finance Cloud - Trading Monitor",
-  description: "Real-time stock tracking and portfolio management application",
-};
+import Navigation from "@/components/navigation";
 
 export default function RootLayout({
   children,
@@ -16,8 +8,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <main className="min-h-screen bg-gray-50">{children}</main>
+      <body>
+        <Navigation />
+        <main className="container mx-auto p-4">{children}</main>
       </body>
     </html>
   );
