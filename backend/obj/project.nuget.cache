@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "DikVHMcngno=",
+  "dgSpecHash": "6Zmf+/0+XoM=",
   "success": true,
-  "projectFilePath": "/Users/yiweisin/GitHub/test/backend/backend.csproj",
+  "projectFilePath": "/Users/yiweisin/GitHub/trading/backend/backend.csproj",
   "expectedPackageFiles": [
     "/Users/yiweisin/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
     "/Users/yiweisin/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/9.0.3/microsoft.aspnetcore.authentication.jwtbearer.9.0.3.nupkg.sha512",

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/yiweisin/GitHub/test/backend/backend.csproj": {}
+    "/Users/yiweisin/GitHub/trading/backend/backend.csproj": {}
   },
   "projects": {
-    "/Users/yiweisin/GitHub/test/backend/backend.csproj": {
+    "/Users/yiweisin/GitHub/trading/backend/backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/yiweisin/GitHub/test/backend/backend.csproj",
+        "projectUniqueName": "/Users/yiweisin/GitHub/trading/backend/backend.csproj",
         "projectName": "backend",
-        "projectPath": "/Users/yiweisin/GitHub/test/backend/backend.csproj",
+        "projectPath": "/Users/yiweisin/GitHub/trading/backend/backend.csproj",
         "packagesPath": "/Users/yiweisin/.nuget/packages/",
-        "outputPath": "/Users/yiweisin/GitHub/test/backend/obj/",
+        "outputPath": "/Users/yiweisin/GitHub/trading/backend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/yiweisin/.nuget/NuGet/NuGet.Config"
