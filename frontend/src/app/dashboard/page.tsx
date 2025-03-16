@@ -1,58 +1,73 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { api } from "@/lib/api";
-import { Portfolio } from "@/lib/types";
-import PortfolioList from "@/components/portfolio-list";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
-export default function Dashboard() {
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+export default function DashboardPage() {
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchPortfolios = async () => {
-      try {
-        // In a real app, you would get the user ID from authentication
-        // For demo, we'll just fetch all portfolios
-        const data = await api.getPortfolios();
-        setPortfolios(data);
-      } catch (err) {
-        console.error("Error fetching portfolios:", err);
-        setError("Failed to load portfolios. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPortfolios();
-  }, []);
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
-    return <div className="text-center p-8">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-lg">Loading...</p>
+      </div>
+    );
   }
 
-  if (error) {
-    return <div className="text-center p-8 text-red-500">{error}</div>;
+  if (!isAuthenticated || !user) {
+    return null; // Will redirect in useEffect
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <Link
-          href="/portfolios"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          View All Portfolios
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <span className="text-xl font-bold text-gray-900">Login App</span>
+            </div>
+            <div className="flex items-center">
+              <span className="mr-4 text-gray-600">
+                Welcome, {user.username}
+              </span>
+              <button
+                onClick={logout}
+                className="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded-md text-sm"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Your Portfolios</h2>
-        <PortfolioList portfolios={portfolios} />
-      </div>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="bg-white overflow-hidden shadow-sm rounded-lg">
+            <div className="p-6 bg-white border-b border-gray-200">
+              <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
+              <p className="text-gray-600">
+                You are now logged in as <strong>{user.username}</strong>.
+              </p>
+              <div className="mt-6 p-4 bg-gray-50 rounded-md">
+                <h3 className="font-medium text-lg mb-2">Protected Content</h3>
+                <p>
+                  This is a protected area of the application. You need to be
+                  logged in to view this content.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

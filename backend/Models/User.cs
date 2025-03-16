@@ -1,17 +1,32 @@
-using System;
-using System.Collections.Generic;
-
-namespace backend.Models
+namespace LoginApp.Models
 {
     public class User
     {
         public Guid Id { get; set; }
-        public required string Username { get; set; }
-        public required string Email { get; set; }
-        public required string PasswordHash { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastLogin { get; set; }
-        public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>();
-        public List<Stock> Watchlist { get; set; } = new List<Stock>();
+        public string Username { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+    }
+
+    public class UserDto
+    {
+        public string Username { get; set; } = string.Empty;
+    }
+
+    public class LoginRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class RegisterRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class LoginResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
     }
 }
