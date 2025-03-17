@@ -40,6 +40,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add services
 builder.Services.AddSingleton<UserRepository>();
 builder.Services.AddSingleton<StockRepository>();
+builder.Services.AddSingleton<TradeLogRepository>();
+builder.Services.AddScoped<TradeLogService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<StockService>();
