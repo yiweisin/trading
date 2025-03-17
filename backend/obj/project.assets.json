@@ -823,24 +823,25 @@
     ]
   },
   "packageFolders": {
-    "/Users/yiweisin/.nuget/packages/": {}
+    "/Users/yiwei/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/yiweisin/GitHub/trading/backend/backend.csproj",
+      "projectUniqueName": "/Users/yiwei/GitHub/trading/backend/backend.csproj",
       "projectName": "backend",
-      "projectPath": "/Users/yiweisin/GitHub/trading/backend/backend.csproj",
-      "packagesPath": "/Users/yiweisin/.nuget/packages/",
-      "outputPath": "/Users/yiweisin/GitHub/trading/backend/obj/",
+      "projectPath": "/Users/yiwei/GitHub/trading/backend/backend.csproj",
+      "packagesPath": "/Users/yiwei/.nuget/packages/",
+      "outputPath": "/Users/yiwei/GitHub/trading/backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/yiweisin/.nuget/NuGet/NuGet.Config"
+        "/Users/yiwei/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
+        "/opt/homebrew/Cellar/dotnet/9.0.101/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -901,7 +902,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.102/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/9.0.101/libexec/sdk/9.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
