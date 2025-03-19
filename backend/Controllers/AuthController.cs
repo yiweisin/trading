@@ -1,55 +1,68 @@
-using LoginApp.Models;
-using LoginApp.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using backend.Data;
+using backend.DTOs;
+using backend.Models;
+using backend.Services;
+using System.Linq;
 
-namespace LoginApp.Controllers
+namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
-        private readonly UserService _userService;
-
-        public AuthController(AuthService authService, UserService userService)
+        private readonly AppDbContext _context;
+        private readonly TokenService _tokenService;
+        
+        public AuthController(AppDbContext context, TokenService tokenService)
         {
-            _authService = authService;
-            _userService = userService;
+            _context = context;
+            _tokenService = tokenService;
         }
-
-        [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
-        {
-            var response = _authService.Login(request);
-            if (response == null)
-            {
-                return Unauthorized(new { message = "Invalid username or password" });
-            }
-
-            return Ok(response);
-        }
-
+        
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterRequest request)
+        public ActionResult<LoginResponseDto> Register(UserDto userDto)
         {
-            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+            if (_context.Users.Any(u => u.Username == userDto.Username))
             {
-                return BadRequest(new { message = "Username and password are required" });
+                return BadRequest("Username is taken");
             }
-
-            if (request.Password.Length < 6)
+            
+            var user = new User
             {
-                return BadRequest(new { message = "Password must be at least 6 characters" });
-            }
-
-            var result = _userService.RegisterUser(request);
-            if (!result)
+                Username = userDto.Username,
+                PasswordHash = PasswordHasher.HashPassword(userDto.Password)
+            };
+            
+            _context.Users.Add(user);
+            _context.SaveChanges();
+            
+            var token = _tokenService.CreateToken(user);
+            
+            return new LoginResponseDto
             {
-                return BadRequest(new { message = "Username already exists" });
+                Username = user.Username,
+                Token = token
+            };
+        }
+        
+        [HttpPost("login")]
+        public ActionResult<LoginResponseDto> Login(UserDto userDto)
+        {
+            var user = _context.Users.SingleOrDefault(u => u.Username == userDto.Username);
+            
+            if (user == null || !PasswordHasher.VerifyPassword(userDto.Password, user.PasswordHash))
+            {
+                return Unauthorized("Invalid username or password");
             }
-
-            return Ok(new { message = "User registered successfully" });
+            
+            var token = _tokenService.CreateToken(user);
+            
+            return new LoginResponseDto
+            {
+                Username = user.Username,
+                Token = token
+            };
         }
     }
 }

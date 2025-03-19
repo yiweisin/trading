@@ -1,32 +1,15 @@
-namespace LoginApp.Models
+using System.ComponentModel.DataAnnotations;
+
+namespace backend.Models
 {
     public class User
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
+        
+        [Required]
         public string Username { get; set; } = string.Empty;
+        
+        [Required]
         public string PasswordHash { get; set; } = string.Empty;
-    }
-
-    public class UserDto
-    {
-        public string Username { get; set; } = string.Empty;
-    }
-
-    public class LoginRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class RegisterRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class LoginResponse
-    {
-        public string Token { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
     }
 }

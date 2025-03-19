@@ -1,25 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "/Users/yiweisin/GitHub/trading/backend/backend.csproj": {}
+    "/Users/yiwei/GitHub/trading/backend/backend.csproj": {}
   },
   "projects": {
-    "/Users/yiweisin/GitHub/trading/backend/backend.csproj": {
+    "/Users/yiwei/GitHub/trading/backend/backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/yiweisin/GitHub/trading/backend/backend.csproj",
+        "projectUniqueName": "/Users/yiwei/GitHub/trading/backend/backend.csproj",
         "projectName": "backend",
-        "projectPath": "/Users/yiweisin/GitHub/trading/backend/backend.csproj",
-        "packagesPath": "/Users/yiweisin/.nuget/packages/",
-        "outputPath": "/Users/yiweisin/GitHub/trading/backend/obj/",
+        "projectPath": "/Users/yiwei/GitHub/trading/backend/backend.csproj",
+        "packagesPath": "/Users/yiwei/.nuget/packages/",
+        "outputPath": "/Users/yiwei/GitHub/trading/backend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/yiweisin/.nuget/NuGet/NuGet.Config"
+          "/Users/yiwei/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
+          "/opt/homebrew/Cellar/dotnet/9.0.101/libexec/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,21 +45,21 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "BCrypt.Net-Next": {
-              "target": "Package",
-              "version": "[4.0.3, )"
-            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[9.0.3, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[7.3.1, )"
+              "version": "[8.0.0, )"
             }
           },
           "imports": [
@@ -80,7 +81,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.102/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/9.0.101/libexec/sdk/9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
