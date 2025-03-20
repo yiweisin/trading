@@ -55,7 +55,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add JWT Authentication
 var key = "YourSuperSecretKey12345!@#$%ThisIsALongerKeyThatMeetsMininumLength"; // Make sure it's at least 32 bytes
 builder.Services.AddSingleton(new TokenService(key));
-
+builder.Services.AddHostedService<StockPriceService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
