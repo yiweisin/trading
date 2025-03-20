@@ -1,7 +1,8 @@
 import { LoginCredentials, User } from "../types/user";
-import { Todo } from "../types/todo";
+import { Stock } from "../types/stock";
+import { Trade, CreateTradeRequest, UpdateTradeRequest } from "../types/trade";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "http://localhost:5141/api";
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const user = JSON.parse(localStorage.getItem("user") || "{}") as User;
@@ -25,8 +26,6 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 }
 
 export async function login(credentials: LoginCredentials): Promise<User> {
-  console.log("API login function called with:", credentials.username);
-
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
@@ -36,24 +35,16 @@ export async function login(credentials: LoginCredentials): Promise<User> {
       body: JSON.stringify(credentials),
     });
 
-    console.log("Login response status:", response.status);
-
     if (!response.ok) {
       const error = await response.text();
-      console.error("Login error response:", error);
       throw new Error(error || "Login failed");
     }
 
     const user = await response.json();
-    console.log("Login successful, user data:", user);
-
-    // Save to localStorage
     localStorage.setItem("user", JSON.stringify(user));
-    console.log("User saved to localStorage");
-
     return user;
   } catch (error) {
-    console.error("API login error:", error);
+    console.error("Login error:", error);
     throw error;
   }
 }
@@ -81,52 +72,87 @@ export async function logout(): Promise<void> {
   localStorage.removeItem("user");
 }
 
-export async function getTodos(): Promise<Todo[]> {
-  const response = await fetchWithAuth(`${API_URL}/todos`);
+// Stocks API
+export async function getStocks(): Promise<Stock[]> {
+  const response = await fetchWithAuth(`${API_URL}/stocks`);
 
   if (!response.ok) {
-    throw new Error("Failed to fetch todos");
+    throw new Error("Failed to fetch stocks");
   }
 
   return response.json();
 }
 
-export async function createTodo(todo: { title: string }): Promise<Todo> {
-  const response = await fetchWithAuth(`${API_URL}/todos`, {
+export async function getStock(id: number): Promise<Stock> {
+  const response = await fetchWithAuth(`${API_URL}/stocks/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch stock");
+  }
+
+  return response.json();
+}
+
+// Trades API
+export async function getTrades(): Promise<Trade[]> {
+  const response = await fetchWithAuth(`${API_URL}/trades`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch trades");
+  }
+
+  return response.json();
+}
+
+export async function getTrade(id: number): Promise<Trade> {
+  const response = await fetchWithAuth(`${API_URL}/trades/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch trade");
+  }
+
+  return response.json();
+}
+
+export async function createTrade(trade: CreateTradeRequest): Promise<Trade> {
+  const response = await fetchWithAuth(`${API_URL}/trades`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...todo, isCompleted: false }),
+    body: JSON.stringify(trade),
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create todo");
+    throw new Error("Failed to create trade");
   }
 
   return response.json();
 }
 
-export async function updateTodo(todo: Todo): Promise<void> {
-  const response = await fetchWithAuth(`${API_URL}/todos/${todo.id}`, {
+export async function updateTrade(
+  id: number,
+  trade: UpdateTradeRequest
+): Promise<void> {
+  const response = await fetchWithAuth(`${API_URL}/trades/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(todo),
+    body: JSON.stringify(trade),
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update todo");
+    throw new Error("Failed to update trade");
   }
 }
 
-export async function deleteTodo(id: number): Promise<void> {
-  const response = await fetchWithAuth(`${API_URL}/todos/${id}`, {
+export async function deleteTrade(id: number): Promise<void> {
+  const response = await fetchWithAuth(`${API_URL}/trades/${id}`, {
     method: "DELETE",
   });
 
   if (!response.ok) {
-    throw new Error("Failed to delete todo");
+    throw new Error("Failed to delete trade");
   }
 }

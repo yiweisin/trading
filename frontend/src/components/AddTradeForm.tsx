@@ -15,13 +15,13 @@ export default function AddTradeForm({
   const [stockId, setStockId] = useState<number>(
     stocks.length > 0 ? stocks[0].id : 0
   );
-  const [entryPrice, setEntryPrice] = useState<number>(0);
+  const [entryPrice, setEntryPrice] = useState<string>("0");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddTrade({
       stockId,
-      entryPrice,
+      entryPrice: parseFloat(entryPrice) || 0,
     });
   };
 
@@ -68,7 +68,7 @@ export default function AddTradeForm({
           type="number"
           id="entryPrice"
           value={entryPrice}
-          onChange={(e) => setEntryPrice(parseFloat(e.target.value))}
+          onChange={(e) => setEntryPrice(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded"
           step="0.01"
           min="0"

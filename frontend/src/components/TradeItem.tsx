@@ -15,7 +15,7 @@ export default function TradeItem({
   onDelete,
 }: TradeItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [pnl, setPnl] = useState(trade.pnl);
+  const [pnl, setPnl] = useState<string>(trade.pnl.toString());
   const [isHolding, setIsHolding] = useState(trade.isHolding);
 
   const formatDate = (dateString: string) => {
@@ -24,7 +24,7 @@ export default function TradeItem({
   };
 
   const handleSave = async () => {
-    await onUpdate(trade.id, pnl, isHolding);
+    await onUpdate(trade.id, parseFloat(pnl) || 0, isHolding);
     setIsEditing(false);
   };
 
@@ -42,7 +42,7 @@ export default function TradeItem({
           <input
             type="number"
             value={pnl}
-            onChange={(e) => setPnl(parseFloat(e.target.value))}
+            onChange={(e) => setPnl(e.target.value)}
             className="w-24 p-1 border rounded"
             step="0.01"
           />
@@ -92,7 +92,7 @@ export default function TradeItem({
             <button
               onClick={() => {
                 setIsEditing(false);
-                setPnl(trade.pnl);
+                setPnl(trade.pnl.toString());
                 setIsHolding(trade.isHolding);
               }}
               className="px-2 py-1 text-xs bg-gray-500 text-white rounded"
