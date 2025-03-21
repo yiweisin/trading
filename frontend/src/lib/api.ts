@@ -1,6 +1,11 @@
 import { LoginCredentials, User } from "../types/user";
 import { Stock } from "../types/stock";
-import { Trade, CreateTradeRequest, UpdateTradeRequest } from "../types/trade";
+import {
+  Trade,
+  CreateTradeRequest,
+  UpdateTradeRequest,
+  SellTradeRequest,
+} from "../types/trade";
 
 const API_URL = "http://localhost:5141/api";
 
@@ -8,15 +13,19 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const user = JSON.parse(localStorage.getItem("user") || "{}") as User;
 
   if (user.token) {
+    console.log("Using token for request:", url);
     options.headers = {
       ...options.headers,
       Authorization: `Bearer ${user.token}`,
     };
+  } else {
+    console.warn("No token found for request:", url);
   }
 
   const response = await fetch(url, options);
 
   if (response.status === 401) {
+    console.error("Unauthorized request:", url);
     localStorage.removeItem("user");
     window.location.href = "/login";
     throw new Error("Unauthorized");
@@ -26,6 +35,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 }
 
 export async function login(credentials: LoginCredentials): Promise<User> {
+  console.log("API login function called with:", credentials.username);
+
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
@@ -35,16 +46,24 @@ export async function login(credentials: LoginCredentials): Promise<User> {
       body: JSON.stringify(credentials),
     });
 
+    console.log("Login response status:", response.status);
+
     if (!response.ok) {
       const error = await response.text();
+      console.error("Login error response:", error);
       throw new Error(error || "Login failed");
     }
 
     const user = await response.json();
+    console.log("Login successful, user data:", user);
+
+    // Save to localStorage
     localStorage.setItem("user", JSON.stringify(user));
+    console.log("User saved to localStorage");
+
     return user;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("API login error:", error);
     throw error;
   }
 }
@@ -88,6 +107,30 @@ export async function getStock(id: number): Promise<Stock> {
 
   if (!response.ok) {
     throw new Error("Failed to fetch stock");
+  }
+
+  return response.json();
+}
+
+export async function getStockPrices(): Promise<
+  { id: number; symbol: string; price: number }[]
+> {
+  const response = await fetchWithAuth(`${API_URL}/stocks/prices`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch stock prices");
+  }
+
+  return response.json();
+}
+
+export async function getStockHistory(
+  id: number
+): Promise<{ date: string; price: number }[]> {
+  const response = await fetchWithAuth(`${API_URL}/stocks/${id}/history`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch stock history");
   }
 
   return response.json();
@@ -144,6 +187,25 @@ export async function updateTrade(
 
   if (!response.ok) {
     throw new Error("Failed to update trade");
+  }
+}
+
+export async function sellTrade(id: number, pnl: number): Promise<void> {
+  const sellRequest: SellTradeRequest = {
+    pnl: pnl,
+    isHolding: false,
+  };
+
+  const response = await fetchWithAuth(`${API_URL}/trades/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(sellRequest),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to sell trade");
   }
 }
 

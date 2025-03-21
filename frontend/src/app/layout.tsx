@@ -7,8 +7,8 @@ import Navbar from "../components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Trading History App",
-  description: "A simple application to track trading history",
+  title: "Trading App",
+  description: "Track your stock trading history",
 };
 
 export default function RootLayout({

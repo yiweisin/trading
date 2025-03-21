@@ -1,28 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import { Stock } from "../types/stock";
 
 interface AddTradeFormProps {
   stocks: Stock[];
-  onAddTrade: (trade: { stockId: number; entryPrice: number }) => void;
+  onAddTrade: (stockId: number) => void;
 }
 
 export default function AddTradeForm({
   stocks,
   onAddTrade,
 }: AddTradeFormProps) {
-  const [stockId, setStockId] = useState<number>(
+  const [stockId, setStockId] = React.useState<number>(
     stocks.length > 0 ? stocks[0].id : 0
   );
-  const [entryPrice, setEntryPrice] = useState<string>("0");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAddTrade({
-      stockId,
-      entryPrice: parseFloat(entryPrice) || 0,
-    });
+    onAddTrade(stockId);
   };
 
   const selectedStock = stocks.find((s) => s.id === stockId);
@@ -61,27 +57,11 @@ export default function AddTradeForm({
       )}
 
       <div>
-        <label htmlFor="entryPrice" className="block mb-1 font-medium">
-          Entry Price ($)
-        </label>
-        <input
-          type="number"
-          id="entryPrice"
-          value={entryPrice}
-          onChange={(e) => setEntryPrice(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-          step="0.01"
-          min="0"
-          required
-        />
-      </div>
-
-      <div>
         <button
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
         >
-          Add Trade
+          Buy Stock
         </button>
       </div>
     </form>
