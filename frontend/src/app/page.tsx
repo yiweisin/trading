@@ -15,12 +15,13 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (loading)
+    return <div className="text-center py-8 text-emerald-600">Loading...</div>;
   if (!user) return null;
 
   return (
-    <div>
-      <h1 className="text-xl font-bold mb-4 text-center">
+    <div className="container mx-auto px-4">
+      <h1 className="text-2xl font-bold mb-6 text-center text-emerald-800">
         Welcome to Your Trading Dashboard, {user.username}!
       </h1>
       <TradeHistory />

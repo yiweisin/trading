@@ -87,42 +87,45 @@ export default function StocksList() {
     }
   }, [selectedStock]);
 
-  if (loading) return <div className="text-center py-4">Loading...</div>;
+  if (loading)
+    return <div className="text-center py-4 text-emerald-600">Loading...</div>;
   if (error)
     return <div className="text-center py-4 text-red-500">{error}</div>;
 
   return (
     <div className="max-w-6xl mx-auto my-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Available Stocks</h1>
-        <span className="text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-emerald-800">
+          Available Stocks
+        </h1>
+        <span className="text-sm text-emerald-600">
           Auto-refresh: {refreshCounter > 0 ? "Active" : "Loading..."}
         </span>
       </div>
 
       <div className="bg-white rounded shadow overflow-hidden">
-        <div className="grid grid-cols-5 gap-4 p-4 bg-gray-100 font-medium">
-          <div>Symbol</div>
-          <div>Name</div>
-          <div>Price</div>
-          <div>Description</div>
-          <div>Actions</div>
+        <div className="grid grid-cols-5 gap-4 p-4 bg-emerald-50 font-medium">
+          <div className="text-emerald-800">Symbol</div>
+          <div className="text-emerald-800">Name</div>
+          <div className="text-emerald-800">Price</div>
+          <div className="text-emerald-800">Description</div>
+          <div className="text-emerald-800">Actions</div>
         </div>
 
         {stocks.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-emerald-500">
             No stocks available.
           </div>
         ) : (
           stocks.map((stock) => (
             <div
               key={stock.id}
-              className="grid grid-cols-5 gap-4 p-4 border-b border-gray-200"
+              className="grid grid-cols-5 gap-4 p-4 border-b border-emerald-200 hover:bg-emerald-50 transition-colors"
             >
-              <div className="font-medium">{stock.symbol}</div>
-              <div>{stock.name}</div>
-              <div>${stock.price.toFixed(2)}</div>
-              <div className="text-sm text-gray-600 truncate">
+              <div className="font-medium text-emerald-700">{stock.symbol}</div>
+              <div className="text-emerald-600">{stock.name}</div>
+              <div className="text-emerald-800">${stock.price.toFixed(2)}</div>
+              <div className="text-sm text-emerald-600 truncate">
                 {stock.description}
               </div>
               <div>
@@ -132,7 +135,7 @@ export default function StocksList() {
                       selectedStock === stock.id ? null : stock.id
                     )
                   }
-                  className="px-2 py-1 text-xs bg-blue-500 text-white rounded"
+                  className="px-2 py-1 text-xs bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
                 >
                   {selectedStock === stock.id ? "Hide History" : "View History"}
                 </button>
@@ -145,17 +148,25 @@ export default function StocksList() {
       {/* Price History Section */}
       {selectedStock && priceHistory.length > 0 && (
         <div className="mt-8 bg-white rounded shadow p-4">
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-xl font-semibold mb-4 text-emerald-800">
             Price History - {stocks.find((s) => s.id === selectedStock)?.symbol}
           </h2>
           <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="bg-gray-100 p-2 font-medium">Date</div>
-            <div className="bg-gray-100 p-2 font-medium">Price</div>
+            <div className="bg-emerald-50 p-2 font-medium text-emerald-800">
+              Date
+            </div>
+            <div className="bg-emerald-50 p-2 font-medium text-emerald-800">
+              Price
+            </div>
 
             {priceHistory.map((item, index) => (
               <React.Fragment key={index}>
-                <div className="p-2 border-b">{item.date}</div>
-                <div className="p-2 border-b">${item.price.toFixed(2)}</div>
+                <div className="p-2 border-b border-emerald-200 text-emerald-700">
+                  {item.date}
+                </div>
+                <div className="p-2 border-b border-emerald-200 text-emerald-700">
+                  ${item.price.toFixed(2)}
+                </div>
               </React.Fragment>
             ))}
           </div>

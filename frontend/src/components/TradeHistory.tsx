@@ -162,7 +162,7 @@ export default function TradeHistory() {
   };
 
   if (loading && trades.length === 0)
-    return <div className="text-center py-4">Loading...</div>;
+    return <div className="text-center py-4 text-emerald-600">Loading...</div>;
   if (error)
     return <div className="text-center py-4 text-red-500">{error}</div>;
 
@@ -181,19 +181,21 @@ export default function TradeHistory() {
     }
   }, 0);
 
-  const pnlClass = totalPnL >= 0 ? "text-green-600" : "text-red-600";
+  const pnlClass = totalPnL >= 0 ? "text-emerald-600" : "text-red-600";
 
   return (
     <div className="max-w-6xl mx-auto my-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Your Trading History</h1>
+        <h1 className="text-2xl font-bold text-emerald-800">
+          Your Trading History
+        </h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-emerald-600">
             Auto-refresh: {refreshCounter > 0 ? "Active" : "Loading..."}
           </span>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600 transition-colors"
           >
             {showAddForm ? "Cancel" : "Buy Stock"}
           </button>
@@ -203,19 +205,23 @@ export default function TradeHistory() {
       {/* Statistics */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded shadow">
-          <h3 className="text-lg font-medium text-gray-700">
+          <h3 className="text-lg font-medium text-emerald-700">
             Active Positions
           </h3>
-          <p className="text-2xl font-bold">{activePositions}</p>
+          <p className="text-2xl font-bold text-emerald-800">
+            {activePositions}
+          </p>
         </div>
         <div className="bg-white p-4 rounded shadow">
-          <h3 className="text-lg font-medium text-gray-700">
+          <h3 className="text-lg font-medium text-emerald-700">
             Closed Positions
           </h3>
-          <p className="text-2xl font-bold">{closedPositions}</p>
+          <p className="text-2xl font-bold text-emerald-800">
+            {closedPositions}
+          </p>
         </div>
         <div className="bg-white p-4 rounded shadow">
-          <h3 className="text-lg font-medium text-gray-700">Total P&L</h3>
+          <h3 className="text-lg font-medium text-emerald-700">Total P&L</h3>
           <p className={`text-2xl font-bold ${pnlClass}`}>
             ${totalPnL.toFixed(2)}
           </p>
@@ -225,7 +231,9 @@ export default function TradeHistory() {
       {/* Add Trade Form */}
       {showAddForm && (
         <div className="mb-6 bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Buy Stock</h2>
+          <h2 className="text-xl font-semibold mb-4 text-emerald-800">
+            Buy Stock
+          </h2>
           <AddTradeForm stocks={stocks} onAddTrade={handleAddTrade} />
         </div>
       )}
@@ -233,19 +241,19 @@ export default function TradeHistory() {
       {/* Trade List */}
       <div className="bg-white rounded shadow overflow-hidden">
         {trades.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-emerald-500">
             No trades yet. Buy your first stock above!
           </div>
         ) : (
           <div>
-            <div className="grid grid-cols-7 gap-4 p-4 bg-gray-100 font-medium">
-              <div>Stock</div>
-              <div>Entry Price</div>
-              <div>Current Price</div>
-              <div>P&L</div>
-              <div>Date</div>
-              <div>Status</div>
-              <div>Actions</div>
+            <div className="grid grid-cols-7 gap-4 p-4 bg-emerald-50 font-medium">
+              <div className="text-emerald-800">Stock</div>
+              <div className="text-emerald-800">Entry Price</div>
+              <div className="text-emerald-800">Current Price</div>
+              <div className="text-emerald-800">P&L</div>
+              <div className="text-emerald-800">Date</div>
+              <div className="text-emerald-800">Status</div>
+              <div className="text-emerald-800">Actions</div>
             </div>
             <div>
               {trades.map((trade) => (
