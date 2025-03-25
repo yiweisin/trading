@@ -69,7 +69,7 @@ export default function TradeHistory() {
   useEffect(() => {
     const timer = setInterval(() => {
       setRefreshCounter((prev) => prev + 1);
-    }, 30000); // Refresh every 30 seconds
+    }, 100); // Refresh every 30 seconds
 
     return () => clearInterval(timer);
   }, []);

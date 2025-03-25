@@ -15,7 +15,7 @@ namespace backend.Services
         private readonly ILogger<StockPriceService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly Random _random = new Random();
-        private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(5); // Update prices every 30 seconds
+        private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(0.5);
 
         public StockPriceService(ILogger<StockPriceService> logger, IServiceProvider serviceProvider)
         {
