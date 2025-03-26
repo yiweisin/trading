@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Stock } from "../types/stock";
+import { getStockPrices } from "../lib/api";
 
 interface AddTradeFormProps {
   stocks: Stock[];
@@ -12,16 +13,80 @@ export default function AddTradeForm({
   stocks,
   onAddTrade,
 }: AddTradeFormProps) {
-  const [stockId, setStockId] = React.useState<number>(
+  const [stockId, setStockId] = useState<number>(
     stocks.length > 0 ? stocks[0].id : 0
   );
+  const [currentStocks, setCurrentStocks] = useState<Stock[]>(stocks);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  // Auto-refresh stock prices
+  useEffect(() => {
+    const updatePrices = async () => {
+      try {
+        const stockPrices = await getStockPrices();
+
+        setCurrentStocks((prevStocks) =>
+          prevStocks.map((stock) => {
+            const updatedPrice = stockPrices.find((sp) => sp.id === stock.id);
+            if (updatedPrice) {
+              return {
+                ...stock,
+                price: updatedPrice.price,
+              };
+            }
+            return stock;
+          })
+        );
+      } catch (err) {
+        console.error("Failed to update prices:", err);
+      }
+    };
+
+    // Initial refresh
+    updatePrices();
+
+    // Set up periodic refresh
+    const timer = setInterval(() => {
+      setRefreshCounter((prev) => prev + 1);
+    }, 100); // Refresh every 30 seconds
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Refresh prices when counter changes
+  useEffect(() => {
+    if (refreshCounter > 0) {
+      const updatePrices = async () => {
+        try {
+          const stockPrices = await getStockPrices();
+
+          setCurrentStocks((prevStocks) =>
+            prevStocks.map((stock) => {
+              const updatedPrice = stockPrices.find((sp) => sp.id === stock.id);
+              if (updatedPrice) {
+                return {
+                  ...stock,
+                  price: updatedPrice.price,
+                };
+              }
+              return stock;
+            })
+          );
+        } catch (err) {
+          console.error("Failed to update prices:", err);
+        }
+      };
+
+      updatePrices();
+    }
+  }, [refreshCounter]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddTrade(stockId);
   };
 
-  const selectedStock = stocks.find((s) => s.id === stockId);
+  const selectedStock = currentStocks.find((s) => s.id === stockId);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -39,7 +104,7 @@ export default function AddTradeForm({
           className="w-full p-2 border border-emerald-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-black"
           required
         >
-          {stocks.map((stock) => (
+          {currentStocks.map((stock) => (
             <option key={stock.id} value={stock.id}>
               {stock.symbol} - {stock.name}
             </option>
@@ -50,9 +115,7 @@ export default function AddTradeForm({
       {selectedStock && (
         <div className="p-3 bg-emerald-50 rounded">
           <p className="text-emerald-800">
-            <span className="font-medium text-emerald-800 ">
-              Current Price:
-            </span>{" "}
+            <span className="font-medium text-emerald-800">Current Price:</span>{" "}
             ${selectedStock.price.toFixed(2)}
           </p>
           <p className="text-sm text-black mt-1">{selectedStock.description}</p>

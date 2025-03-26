@@ -3,28 +3,65 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
+import { getTrades } from "../../lib/api";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [profileData, setProfileData] = useState({
     username: "",
-    email: "user@example.com", // Placeholder since we don't have this in the model
-    joinDate: "",
     tradesCount: 0,
+    winRate: 0,
+    avgPnlPerTrade: 0,
   });
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
     } else if (user) {
-      // Set profile data based on user
-      setProfileData({
-        username: user.username,
-        email: "user@example.com", // Placeholder
-        joinDate: new Date().toLocaleDateString(), // Placeholder
-        tradesCount: 3, // Placeholder
-      });
+      const fetchTradeStats = async () => {
+        try {
+          const trades = await getTrades();
+
+          const totalTrades = trades.length;
+          const winningTrades = trades.filter(
+            (trade) =>
+              trade.pnl > 0 ||
+              (trade.isHolding &&
+                trade.currentPrice &&
+                trade.currentPrice > trade.entryPrice)
+          );
+
+          const winRate =
+            totalTrades > 0
+              ? ((winningTrades.length / totalTrades) * 100).toFixed(2)
+              : 0;
+
+          const totalPnL = trades.reduce((sum, trade) => {
+            // For closed trades, use stored PNL
+            if (!trade.isHolding) return sum + trade.pnl;
+
+            // For open trades, calculate potential PNL
+            return trade.currentPrice
+              ? sum + (trade.currentPrice - trade.entryPrice)
+              : sum;
+          }, 0);
+
+          const avgPnlPerTrade =
+            totalTrades > 0 ? Number((totalPnL / totalTrades).toFixed(2)) : 0;
+
+          setProfileData({
+            username: user.username,
+            tradesCount: totalTrades,
+            winRate: Number(winRate),
+            avgPnlPerTrade: avgPnlPerTrade,
+          });
+        } catch (error) {
+          console.error("Failed to fetch trade stats", error);
+        }
+      };
+
+      fetchTradeStats();
     }
   }, [user, loading, router]);
 
@@ -59,28 +96,12 @@ export default function ProfilePage() {
                 Account Information
               </h3>
               <div className="bg-emerald-50 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-sm text-emerald-600">Username</p>
                     <p className="font-medium text-emerald-900">
                       {profileData.username}
                     </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-emerald-600">Email</p>
-                    <p className="font-medium text-emerald-900">
-                      {profileData.email}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-emerald-600">Joined</p>
-                    <p className="font-medium text-emerald-900">
-                      {profileData.joinDate}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-emerald-600">Status</p>
-                    <p className="font-medium text-emerald-600">Active</p>
                   </div>
                 </div>
               </div>
@@ -92,7 +113,7 @@ export default function ProfilePage() {
                 Trading Statistics
               </h3>
               <div className="bg-emerald-50 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-sm text-emerald-600">Total Trades</p>
                     <p className="font-medium text-emerald-900">
@@ -100,67 +121,25 @@ export default function ProfilePage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-emerald-600">Active Positions</p>
-                    <p className="font-medium text-emerald-900">2</p>
-                  </div>
-                  <div>
                     <p className="text-sm text-emerald-600">Win Rate</p>
-                    <p className="font-medium text-emerald-600">67%</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-emerald-600">Avg. Return</p>
-                    <p className="font-medium text-emerald-600">+8.2%</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Account Settings Section */}
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4 text-emerald-800">
-              Account Settings
-            </h3>
-            <div className="bg-emerald-50 rounded-lg p-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-emerald-900">
-                      Change Password
+                    <p className="font-medium text-emerald-600">
+                      {profileData.winRate}%
                     </p>
+                  </div>
+                  <div>
                     <p className="text-sm text-emerald-600">
-                      Update your account password
+                      Avg. PNL per Trade
+                    </p>
+                    <p
+                      className={`font-medium ${
+                        profileData.avgPnlPerTrade >= 0
+                          ? "text-emerald-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      ${profileData.avgPnlPerTrade.toFixed(2)}
                     </p>
                   </div>
-                  <button className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors">
-                    Change
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-emerald-900">
-                      Notification Settings
-                    </p>
-                    <p className="text-sm text-emerald-600">
-                      Configure your notification preferences
-                    </p>
-                  </div>
-                  <button className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors">
-                    Configure
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-emerald-900">
-                      Export Trading Data
-                    </p>
-                    <p className="text-sm text-emerald-600">
-                      Download your trading history
-                    </p>
-                  </div>
-                  <button className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors">
-                    Export
-                  </button>
                 </div>
               </div>
             </div>

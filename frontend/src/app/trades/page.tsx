@@ -2,27 +2,27 @@
 
 import React from "react";
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { Trade } from "../types/trade";
-import { Stock } from "../types/stock";
+import { Trade } from "@/types/trade";
+import { Stock } from "@/types/stock";
 import {
   getTrades,
   getStocks,
   getStockPrices,
   createTrade,
   sellTrade,
-} from "../lib/api";
-import TradeItem from "./TradeItem";
-import AddTradeForm from "./AddTradeForm";
+  deleteTrade,
+} from "@/lib/api";
+import TradeItem from "@/components/TradeItem";
+import AddTradeForm from "@/components/AddTradeForm";
 
-export default function DashboardTradeHistory() {
+export default function TradesPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [filter, setFilter] = useState<"all" | "active" | "closed">("all");
 
   const fetchData = useCallback(async () => {
     try {
@@ -36,21 +36,17 @@ export default function DashboardTradeHistory() {
         getStockPrices(),
       ]);
 
-      // Store all trades for PNL calculation
-      setAllTrades(tradesData);
-
-      // Filter only holding trades for dashboard
-      const holdingTrades = tradesData.filter((trade) => trade.isHolding);
-
       // Add current prices to any active trades
-      const tradesWithCurrentPrices = holdingTrades.map((trade) => {
-        // Find current price for this stock
-        const stockPrice = stockPrices.find((sp) => sp.id === trade.stockId);
-        if (stockPrice) {
-          return {
-            ...trade,
-            currentPrice: stockPrice.price,
-          };
+      const tradesWithCurrentPrices = tradesData.map((trade) => {
+        if (trade.isHolding) {
+          // Find current price for this stock
+          const stockPrice = stockPrices.find((sp) => sp.id === trade.stockId);
+          if (stockPrice) {
+            return {
+              ...trade,
+              currentPrice: stockPrice.price,
+            };
+          }
         }
         return trade;
       });
@@ -74,7 +70,7 @@ export default function DashboardTradeHistory() {
   useEffect(() => {
     const timer = setInterval(() => {
       setRefreshCounter((prev) => prev + 1);
-    }, 100);
+    }, 100); // Refresh every 30 seconds
 
     return () => clearInterval(timer);
   }, []);
@@ -88,14 +84,16 @@ export default function DashboardTradeHistory() {
 
           setTrades((prevTrades) =>
             prevTrades.map((trade) => {
-              const stockPrice = stockPrices.find(
-                (sp) => sp.id === trade.stockId
-              );
-              if (stockPrice) {
-                return {
-                  ...trade,
-                  currentPrice: stockPrice.price,
-                };
+              if (trade.isHolding) {
+                const stockPrice = stockPrices.find(
+                  (sp) => sp.id === trade.stockId
+                );
+                if (stockPrice) {
+                  return {
+                    ...trade,
+                    currentPrice: stockPrice.price,
+                  };
+                }
               }
               return trade;
             })
@@ -141,48 +139,69 @@ export default function DashboardTradeHistory() {
     }
   };
 
+  const handleDeleteTrade = async (id: number) => {
+    try {
+      await deleteTrade(id);
+      fetchData();
+    } catch (err) {
+      setError("Failed to delete trade");
+      console.error(err);
+    }
+  };
+
+  // Filter trades based on selected filter
+  const filteredTrades = trades.filter((trade) => {
+    if (filter === "active") return trade.isHolding;
+    if (filter === "closed") return !trade.isHolding;
+    return true;
+  });
+
+  // Calculate statistics
+  const activePositions = trades.filter((trade) => trade.isHolding).length;
+  const closedPositions = trades.filter((trade) => !trade.isHolding).length;
+
+  // Calculate total PNL including unrealized gains/losses
+  const totalPnL = trades.reduce((sum, trade) => {
+    if (trade.isHolding && trade.currentPrice) {
+      // For active trades, calculate based on current price
+      return sum + (trade.currentPrice - trade.entryPrice);
+    } else {
+      // For closed trades, use the stored PNL
+      return sum + trade.pnl;
+    }
+  }, 0);
+
+  const pnlClass = totalPnL >= 0 ? "text-emerald-600" : "text-red-600";
+
   if (loading && trades.length === 0)
     return <div className="text-center py-4 text-emerald-600">Loading...</div>;
   if (error)
     return <div className="text-center py-4 text-red-500">{error}</div>;
 
-  // Calculate statistics for all trades
-  const activePositions = trades.length;
-  const totalPnL = allTrades.reduce((sum, trade) => {
-    // For closed trades, use stored PNL
-    if (!trade.isHolding) {
-      return sum + trade.pnl;
-    }
-
-    // For active trades, calculate PNL based on current price if available
-    if (trade.isHolding) {
-      const currentTrade = trades.find((t) => t.id === trade.id);
-      if (currentTrade && currentTrade.currentPrice) {
-        return sum + (currentTrade.currentPrice - trade.entryPrice);
-      }
-    }
-
-    return sum;
-  }, 0);
-
-  const pnlClass = totalPnL >= 0 ? "text-emerald-600" : "text-red-600";
-
   return (
     <div className="max-w-6xl mx-auto my-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-emerald-800">
-          Active Positions
+          Your Trading History
         </h1>
         <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-emerald-600">Filter:</span>
+            <select
+              value={filter}
+              onChange={(e) =>
+                setFilter(e.target.value as "all" | "active" | "closed")
+              }
+              className="px-2 py-1 border border-emerald-300 rounded text-black"
+            >
+              <option value="all">All Trades</option>
+              <option value="active">Active Positions</option>
+              <option value="closed">Closed Trades</option>
+            </select>
+          </div>
           <span className="text-sm text-emerald-600">
             Auto-refresh: {refreshCounter > 0 ? "Active" : "Loading..."}
           </span>
-          <Link
-            href="/trades"
-            className="text-emerald-600 hover:text-emerald-800 transition-colors mr-4"
-          >
-            See All Trades
-          </Link>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600 transition-colors"
@@ -193,13 +212,21 @@ export default function DashboardTradeHistory() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded shadow">
           <h3 className="text-lg font-medium text-emerald-700">
             Active Positions
           </h3>
           <p className="text-2xl font-bold text-emerald-800">
             {activePositions}
+          </p>
+        </div>
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="text-lg font-medium text-emerald-700">
+            Closed Positions
+          </h3>
+          <p className="text-2xl font-bold text-emerald-800">
+            {closedPositions}
           </p>
         </div>
         <div className="bg-white p-4 rounded shadow">
@@ -222,9 +249,13 @@ export default function DashboardTradeHistory() {
 
       {/* Trade List */}
       <div className="bg-white rounded shadow overflow-hidden">
-        {trades.length === 0 ? (
+        {filteredTrades.length === 0 ? (
           <div className="p-6 text-center text-emerald-500">
-            No active positions. Buy your first stock!
+            {filter === "active"
+              ? "No active positions"
+              : filter === "closed"
+              ? "No closed trades"
+              : "No trades yet. Buy your first stock!"}
           </div>
         ) : (
           <div>
@@ -238,12 +269,12 @@ export default function DashboardTradeHistory() {
               <div className="text-emerald-800">Actions</div>
             </div>
             <div>
-              {trades.map((trade) => (
+              {filteredTrades.map((trade) => (
                 <TradeItem
                   key={trade.id}
                   trade={trade}
                   onSell={handleSellTrade}
-                  onDelete={() => {}} // Disable delete for dashboard view
+                  onDelete={handleDeleteTrade}
                 />
               ))}
             </div>
