@@ -48,9 +48,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add DbContext
+// Add DbContext with PostgreSQL
+// Get connection string from appsettings.json
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=trading.db"));
+    options.UseNpgsql(connectionString));
 
 // Add JWT Authentication
 var key = "YourSuperSecretKey12345!@#$%ThisIsALongerKeyThatMeetsMininumLength"; // Make sure it's at least 32 bytes
@@ -104,19 +106,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ensure the database is created
+// Apply migrations instead of EnsureCreated
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
     try
     {
-        context.Database.EnsureCreated();
-        Console.WriteLine("Database created successfully");
+        // Migrate the database (this is safer than EnsureCreated for PostgreSQL)
+        context.Database.Migrate();
+        Console.WriteLine("Database migrations applied successfully");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"An error occurred creating the DB: {ex.Message}");
+        Console.WriteLine($"An error occurred migrating the DB: {ex.Message}");
     }
 }
 
