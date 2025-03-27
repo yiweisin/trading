@@ -5,16 +5,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 
-// Simple icon components
+// Modern icon components
 const DashboardIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className="h-5 w-5"
-    viewBox="0 0 20 20"
-    fill="currentColor"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
-    <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+    <rect x="3" y="3" width="7" height="9" />
+    <rect x="14" y="3" width="7" height="5" />
+    <rect x="14" y="12" width="7" height="9" />
+    <rect x="3" y="16" width="7" height="5" />
   </svg>
 );
 
@@ -22,14 +28,14 @@ const StocksIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className="h-5 w-5"
-    viewBox="0 0 20 20"
-    fill="currentColor"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <path
-      fillRule="evenodd"
-      d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
-      clipRule="evenodd"
-    />
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
   </svg>
 );
 
@@ -37,14 +43,14 @@ const TradesIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className="h-5 w-5"
-    viewBox="0 0 20 20"
-    fill="currentColor"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <path
-      fillRule="evenodd"
-      d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
-      clipRule="evenodd"
-    />
+    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
   </svg>
 );
 
@@ -52,14 +58,32 @@ const ProfileIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className="h-5 w-5"
-    viewBox="0 0 20 20"
-    fill="currentColor"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <path
-      fillRule="evenodd"
-      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-      clipRule="evenodd"
-    />
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const LogoutIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-5 w-5"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
 
@@ -74,7 +98,7 @@ export default function Sidebar() {
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: <DashboardIcon /> },
-    { path: "/stocks", label: "Stocks", icon: <StocksIcon /> },
+    { path: "/stocks", label: "Markets", icon: <StocksIcon /> },
     { path: "/trades", label: "My Trades", icon: <TradesIcon /> },
     { path: "/profile", label: "Profile", icon: <ProfileIcon /> },
   ];
@@ -84,7 +108,7 @@ export default function Sidebar() {
       {/* Mobile toggle button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed md:hidden z-90 bottom-10 right-10 bg-emerald-600 w-10 h-10 rounded-full drop-shadow-lg flex justify-center items-center text-white hover:bg-emerald-700 transition-colors"
+        className="fixed md:hidden z-90 bottom-10 right-10 bg-slate-700 w-12 h-12 rounded-full drop-shadow-lg flex justify-center items-center text-white hover:bg-slate-800 transition-colors"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -115,46 +139,63 @@ export default function Sidebar() {
       <div
         className={`${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed top-0 left-0 h-screen w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-30 md:translate-x-0`}
+        } fixed top-0 left-0 h-screen w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-30 md:translate-x-0`}
       >
         <div className="flex flex-col h-full">
           {/* App Title */}
-          <div className="p-4 bg-emerald-700 text-white text-center">
-            <h1 className="text-xl font-bold">Trading App</h1>
+          <div className="bg-gradient-to-r from-slate-800 to-slate-700 py-6 px-6">
+            <h1 className="text-xl font-bold text-white">MONEYYY</h1>
+            <p className="text-slate-300 text-sm mt-1">A TRADING APP</p>
           </div>
 
           {/* Profile Summary */}
           {user && (
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-5 border-b border-slate-100">
               <div className="flex items-center space-x-3">
-                <div className="bg-emerald-100 p-2 rounded-full">
-                  <ProfileIcon />
+                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 text-white flex items-center justify-center text-lg font-bold shadow-sm">
+                  {user.username.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-medium text-emerald-800">
-                    {user.username}
-                  </p>
-                  <p className="text-xs text-emerald-600">Welcome back!</p>
+                  <p className="font-medium text-slate-800">{user.username}</p>
+                  <div className="flex items-center">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2"></div>
+                    <p className="text-xs text-slate-500">Active</p>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {/* Navigation Links */}
-          <nav className="flex-grow py-4">
+          <nav className="flex-grow py-6 px-3">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mb-2">
+              Navigation
+            </div>
             <ul className="space-y-1">
               {navItems.map((item) => (
                 <li key={item.path}>
                   <Link
                     href={item.path}
-                    className={`flex items-center px-4 py-3 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors ${
+                    className={`flex items-center px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors ${
                       pathname === item.path
-                        ? "bg-emerald-50 text-emerald-600 border-r-4 border-emerald-600"
+                        ? "bg-slate-100 text-slate-800 font-medium"
                         : ""
                     }`}
                   >
-                    <span className="mr-3 text-emerald-500">{item.icon}</span>
+                    <span
+                      className={`mr-3 ${
+                        pathname === item.path
+                          ? "text-indigo-600"
+                          : "text-slate-500"
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
                     <span>{item.label}</span>
+
+                    {pathname === item.path && (
+                      <span className="ml-auto h-2 w-2 rounded-full bg-indigo-600"></span>
+                    )}
                   </Link>
                 </li>
               ))}
@@ -163,24 +204,15 @@ export default function Sidebar() {
 
           {/* Logout */}
           {user && (
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-slate-100">
               <button
                 onClick={handleLogout}
-                className="flex items-center px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 w-full rounded transition-colors"
+                className="flex items-center w-full px-4 py-3 rounded-lg text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-colors"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-3 text-emerald-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V7.414l-5-5H3zm9 5a1 1 0 10-2 0v4.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L12 12.586V8z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Logout</span>
+                <span className="mr-3 text-slate-500">
+                  <LogoutIcon />
+                </span>
+                <span>Sign Out</span>
               </button>
             </div>
           )}

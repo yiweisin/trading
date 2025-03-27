@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useState } from "react";
 import { Trade } from "../types/trade";
 
 interface TradeItemProps {
@@ -13,7 +12,11 @@ interface TradeItemProps {
 export default function TradeItem({ trade, onSell, onDelete }: TradeItemProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   // Calculate current PNL if holding (use stored PNL if closed)
@@ -23,7 +26,7 @@ export default function TradeItem({ trade, onSell, onDelete }: TradeItemProps) {
       : trade.pnl;
 
   const pnlDisplay = pnl.toFixed(2);
-  const pnlClass = pnl >= 0 ? "text-emerald-600" : "text-red-600";
+  const pnlClass = pnl >= 0 ? "text-emerald-600" : "text-rose-600";
 
   // Calculate percent change
   const percentChange =
@@ -32,6 +35,7 @@ export default function TradeItem({ trade, onSell, onDelete }: TradeItemProps) {
       : (trade.pnl / trade.entryPrice) * 100;
 
   const percentChangeDisplay = percentChange.toFixed(2);
+  const percentChangeSign = percentChange >= 0 ? "+" : "";
 
   const handleSell = async () => {
     if (trade.isHolding && trade.currentPrice) {
@@ -40,56 +44,104 @@ export default function TradeItem({ trade, onSell, onDelete }: TradeItemProps) {
   };
 
   return (
-    <div className="grid grid-cols-7 gap-4 p-4 border-b border-emerald-200 items-center hover:bg-emerald-50 transition-colors">
-      <div>
-        <div className="font-medium text-emerald-800">{trade.stockSymbol}</div>
-        <div className="text-sm text-emerald-600">{trade.stockName}</div>
-      </div>
+    <tr className="hover:bg-slate-50 transition-colors">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="font-medium text-slate-800">{trade.stockSymbol}</div>
+        <div className="text-sm text-slate-500">{trade.stockName}</div>
+      </td>
 
-      <div className="text-emerald-700">${trade.entryPrice.toFixed(2)}</div>
-
-      {trade.isHolding && trade.currentPrice ? (
-        <div className="font-medium text-emerald-800">
-          ${trade.currentPrice.toFixed(2)}
+      <td className="px-6 py-4 whitespace-nowrap text-right">
+        <div className="font-medium text-slate-700">
+          ${trade.entryPrice.toFixed(2)}
         </div>
-      ) : (
-        <div>—</div>
-      )}
+      </td>
 
-      <div className={`font-medium ${pnlClass}`}>
-        ${pnlDisplay} ({percentChangeDisplay}%)
-      </div>
+      <td className="px-6 py-4 whitespace-nowrap text-right">
+        {trade.isHolding && trade.currentPrice ? (
+          <div className="font-medium text-slate-800">
+            ${trade.currentPrice.toFixed(2)}
+          </div>
+        ) : (
+          <div className="text-slate-400">—</div>
+        )}
+      </td>
 
-      <div className="text-emerald-600">{formatDate(trade.date)}</div>
+      <td className="px-6 py-4 whitespace-nowrap text-right">
+        <div className={`font-medium ${pnlClass}`}>
+          {pnl >= 0 ? "+" : ""}
+          {pnlDisplay}
+          <span className="text-xs ml-1">
+            ({percentChangeSign}
+            {percentChangeDisplay}%)
+          </span>
+        </div>
+      </td>
 
-      <div>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-slate-600">{formatDate(trade.date)}</div>
+      </td>
+
+      <td className="px-6 py-4 whitespace-nowrap">
         <span
-          className={`px-2 py-1 rounded text-xs ${
+          className={`px-3 py-1 rounded-full text-xs font-medium ${
             trade.isHolding
-              ? "bg-emerald-100 text-emerald-800"
-              : "bg-gray-100 text-gray-800"
+              ? "bg-indigo-100 text-indigo-800"
+              : "bg-slate-100 text-slate-800"
           }`}
         >
-          {trade.isHolding ? "Holding" : "Closed"}
+          {trade.isHolding ? "Active" : "Closed"}
         </span>
-      </div>
+      </td>
 
-      <div className="flex space-x-2">
-        {trade.isHolding ? (
-          <button
-            onClick={handleSell}
-            className="px-2 py-1 text-xs bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
-          >
-            Sell
-          </button>
-        ) : null}
-        <button
-          onClick={() => onDelete(trade.id)}
-          className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <div className="flex justify-center space-x-2">
+          {trade.isHolding ? (
+            <button
+              onClick={handleSell}
+              className="px-3 py-1.5 text-xs bg-slate-700 text-white rounded-md hover:bg-slate-800 transition-colors shadow-sm flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+              Sell
+            </button>
+          ) : (
+            <button
+              onClick={() => onDelete(trade.id)}
+              className="px-3 py-1.5 text-xs bg-rose-500 text-white rounded-md hover:bg-rose-600 transition-colors shadow-sm flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+              Delete
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
   );
 }
