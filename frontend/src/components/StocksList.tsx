@@ -4,16 +4,14 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { Stock } from "../types/stock";
 import { getStocks, getStockPrices, getStockHistory } from "../lib/api";
+import { useRouter } from "next/navigation";
 
 export default function StocksList() {
+  const router = useRouter();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
-  const [selectedStock, setSelectedStock] = useState<number | null>(null);
-  const [priceHistory, setPriceHistory] = useState<
-    { date: string; price: number }[]
-  >([]);
   const [yesterdayPrices, setYesterdayPrices] = useState<
     Record<number, number>
   >({});
@@ -58,7 +56,7 @@ export default function StocksList() {
     // Start auto-refresh timer
     const timer = setInterval(() => {
       setRefreshCounter((prev) => prev + 1);
-    }, 100); // Refresh every 100ms
+    }, 60000); // Changed to refresh every minute to reduce API load
 
     return () => clearInterval(timer);
   }, []);
@@ -91,24 +89,6 @@ export default function StocksList() {
     }
   }, [refreshCounter]);
 
-  // Fetch price history when a stock is selected
-  useEffect(() => {
-    if (selectedStock) {
-      const fetchPriceHistory = async () => {
-        try {
-          const history = await getStockHistory(selectedStock);
-          setPriceHistory(history);
-        } catch (err) {
-          console.error("Failed to fetch price history:", err);
-        }
-      };
-
-      fetchPriceHistory();
-    } else {
-      setPriceHistory([]);
-    }
-  }, [selectedStock]);
-
   // Calculate daily change for a stock
   const calculateDailyChange = (stock: Stock) => {
     const yesterdayPrice = yesterdayPrices[stock.id];
@@ -128,6 +108,11 @@ export default function StocksList() {
     if (change > 0) return "text-green-600";
     if (change < 0) return "text-red-600";
     return "text-gray-600";
+  };
+
+  // Handle stock selection - navigate to detail page
+  const handleStockClick = (stockId: number) => {
+    router.push(`/stocks/${stockId}`);
   };
 
   if (loading)
@@ -164,12 +149,8 @@ export default function StocksList() {
             return (
               <div
                 key={stock.id}
-                className={`grid grid-cols-4 gap-4 p-4 border-b border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer ${
-                  selectedStock === stock.id ? "bg-emerald-50" : ""
-                }`}
-                onClick={() =>
-                  setSelectedStock(selectedStock === stock.id ? null : stock.id)
-                }
+                className="grid grid-cols-4 gap-4 p-4 border-b border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer"
+                onClick={() => handleStockClick(stock.id)}
               >
                 <div className="font-medium text-emerald-700">
                   {stock.symbol}
@@ -188,57 +169,6 @@ export default function StocksList() {
           })
         )}
       </div>
-
-      {/* Stock Details Section: Description and Price History */}
-      {selectedStock && (
-        <div className="mt-8 bg-white rounded shadow p-4">
-          <h2 className="text-xl font-semibold mb-4 text-emerald-800">
-            {stocks.find((s) => s.id === selectedStock)?.symbol} -{" "}
-            {stocks.find((s) => s.id === selectedStock)?.name}
-          </h2>
-
-          {/* Description */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-emerald-700 mb-2">
-              Description
-            </h3>
-            <p className="text-emerald-600">
-              {stocks.find((s) => s.id === selectedStock)?.description ||
-                "No description available."}
-            </p>
-          </div>
-
-          {/* Price History */}
-          {priceHistory.length > 0 ? (
-            <div>
-              <h3 className="text-lg font-medium text-emerald-700 mb-2">
-                Price History
-              </h3>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="bg-emerald-50 p-2 font-medium text-emerald-800">
-                  Date
-                </div>
-                <div className="bg-emerald-50 p-2 font-medium text-emerald-800">
-                  Price
-                </div>
-
-                {priceHistory.map((item, index) => (
-                  <React.Fragment key={index}>
-                    <div className="p-2 border-b border-emerald-200 text-emerald-700">
-                      {item.date}
-                    </div>
-                    <div className="p-2 border-b border-emerald-200 text-emerald-700">
-                      ${item.price.toFixed(2)}
-                    </div>
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-emerald-500">Loading price history...</p>
-          )}
-        </div>
-      )}
     </div>
   );
 }
