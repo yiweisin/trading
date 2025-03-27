@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 using backend.Data;
 using backend.DTOs;
-using backend.Models;
 
 namespace backend.Controllers
 {
@@ -77,7 +73,6 @@ namespace backend.Controllers
             return stockPrices;
         }
         
-        // Endpoint to get price history (mock data for now)
         [HttpGet("{id}/history")]
         public ActionResult<IEnumerable<object>> GetPriceHistory(int id)
         {
@@ -87,7 +82,6 @@ namespace backend.Controllers
                 return NotFound();
             }
             
-            // Generate mock price history data
             var random = new Random();
             var currentPrice = stock.Price;
             var history = new List<object>();
@@ -95,11 +89,9 @@ namespace backend.Controllers
             
             for (int i = 0; i < 30; i++)
             {
-                // Random fluctuation between -5% and +5% of current price
                 var fluctuation = (decimal)(random.NextDouble() * 10 - 5) / 100;
                 var historicalPrice = Math.Round(currentPrice * (1 - (i * 0.005m + fluctuation)), 2);
                 
-                // Ensure price doesn't go below 1.00
                 if (historicalPrice < 1.00m)
                 {
                     historicalPrice = 1.00m;

@@ -3,7 +3,6 @@ using backend.Data;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
-using System.Linq;
 
 namespace backend.Controllers
 {
