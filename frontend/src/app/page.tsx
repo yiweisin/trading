@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
-import TradeHistory from "../components/TradeHistory";
+import Dashboard from "../components/Dashboard";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -24,7 +24,7 @@ export default function Home() {
       <h1 className="text-2xl font-bold mb-6 text-center text-emerald-800">
         Welcome to Your Trading Dashboard, {user.username}!
       </h1>
-      <TradeHistory />
+      <Dashboard />
     </div>
   );
 }

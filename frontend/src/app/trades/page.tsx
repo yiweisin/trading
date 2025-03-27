@@ -199,9 +199,6 @@ export default function TradesPage() {
               <option value="closed">Closed Trades</option>
             </select>
           </div>
-          <span className="text-sm text-emerald-600">
-            Auto-refresh: {refreshCounter > 0 ? "Active" : "Loading..."}
-          </span>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600 transition-colors"

@@ -15,7 +15,7 @@ import {
 import TradeItem from "./TradeItem";
 import AddTradeForm from "./AddTradeForm";
 
-export default function DashboardTradeHistory() {
+export default function Dashboard() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -174,9 +174,6 @@ export default function DashboardTradeHistory() {
           Active Positions
         </h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-emerald-600">
-            Auto-refresh: {refreshCounter > 0 ? "Active" : "Loading..."}
-          </span>
           <Link
             href="/trades"
             className="text-emerald-600 hover:text-emerald-800 transition-colors mr-4"
@@ -224,7 +221,7 @@ export default function DashboardTradeHistory() {
       <div className="bg-white rounded shadow overflow-hidden">
         {trades.length === 0 ? (
           <div className="p-6 text-center text-emerald-500">
-            No active positions. Buy your first stock!
+            No active positions.
           </div>
         ) : (
           <div>
@@ -243,7 +240,7 @@ export default function DashboardTradeHistory() {
                   key={trade.id}
                   trade={trade}
                   onSell={handleSellTrade}
-                  onDelete={() => {}} // Disable delete for dashboard view
+                  onDelete={() => {}}
                 />
               ))}
             </div>
