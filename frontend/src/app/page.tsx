@@ -15,12 +15,10 @@ export default function Home() {
 
   const [trades, setTrades] = useState<Trade[]>([]);
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
-  const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
-  // Auth redirect
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login");
@@ -32,22 +30,17 @@ export default function Home() {
       setLoading(true);
       setError(null);
 
-      // Fetch trades, stocks and current prices
       const [tradesData, stocksData, stockPrices] = await Promise.all([
         getTrades(),
         getStocks(),
         getStockPrices(),
       ]);
 
-      // Store all trades for PNL calculation
       setAllTrades(tradesData);
 
-      // Filter only holding trades for dashboard
       const holdingTrades = tradesData.filter((trade) => trade.isHolding);
 
-      // Add current prices to any active trades
       const tradesWithCurrentPrices = holdingTrades.map((trade) => {
-        // Find current price for this stock
         const stockPrice = stockPrices.find((sp) => sp.id === trade.stockId);
         if (stockPrice) {
           return {
@@ -59,7 +52,6 @@ export default function Home() {
       });
 
       setTrades(tradesWithCurrentPrices);
-      setStocks(stocksData);
     } catch (err) {
       setError("Failed to fetch data");
       console.error(err);
@@ -68,14 +60,12 @@ export default function Home() {
     }
   }, []);
 
-  // Initial data load
   useEffect(() => {
     if (user) {
       fetchData();
     }
   }, [fetchData, user]);
 
-  // Refresh stock prices periodically
   useEffect(() => {
     if (!user) return;
 
@@ -86,7 +76,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [user]);
 
-  // Refresh data when counter changes
   useEffect(() => {
     if (refreshCounter > 0 && user) {
       const updatePrices = async () => {
@@ -126,15 +115,12 @@ export default function Home() {
     }
   };
 
-  // Calculate statistics for all trades
   const activePositions = trades.length;
   const totalPnL = allTrades.reduce((sum, trade) => {
-    // For closed trades, use stored PNL
     if (!trade.isHolding) {
       return sum + trade.pnl;
     }
 
-    // For active trades, calculate PNL based on current price if available
     if (trade.isHolding) {
       const currentTrade = trades.find((t) => t.id === trade.id);
       if (currentTrade && currentTrade.currentPrice) {
@@ -145,7 +131,6 @@ export default function Home() {
     return sum;
   }, 0);
 
-  // Calculate more stats
   const winningTrades = allTrades.filter((trade) => {
     if (!trade.isHolding) return trade.pnl > 0;
 
