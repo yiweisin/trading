@@ -18,12 +18,20 @@ namespace backend.Data
             // Set PostgreSQL-specific table naming convention (lowercase table names)
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
-                entity.SetTableName(entity.GetTableName().ToLower());
+                var tableName = entity.GetTableName();
+                if (tableName != null)
+                {
+                    entity.SetTableName(tableName.ToLower());
+                }
                 
                 // Set column names to lowercase
                 foreach (var property in entity.GetProperties())
                 {
-                    property.SetColumnName(property.GetColumnName().ToLower());
+                    var columnName = property.GetColumnName();
+                    if (columnName != null)
+                    {
+                        property.SetColumnName(columnName.ToLower());
+                    }
                 }
             }
             

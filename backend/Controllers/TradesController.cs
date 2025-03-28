@@ -22,7 +22,12 @@ namespace backend.Controllers
         
         private int GetUserId()
         {
-            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                throw new UnauthorizedAccessException("User ID not found in token");
+            }
+            return int.Parse(userIdClaim);
         }
         
         [HttpGet]
@@ -36,8 +41,8 @@ namespace backend.Controllers
                 {
                     Id = t.Id,
                     StockId = t.StockId,
-                    StockSymbol = t.Stock.Symbol,
-                    StockName = t.Stock.Name,
+                    StockSymbol = t.Stock != null ? t.Stock.Symbol : string.Empty,
+                    StockName = t.Stock != null ? t.Stock.Name : string.Empty,
                     EntryPrice = t.EntryPrice,
                     PNL = t.PNL,
                     Date = t.Date,
@@ -60,8 +65,8 @@ namespace backend.Controllers
                 {
                     Id = t.Id,
                     StockId = t.StockId,
-                    StockSymbol = t.Stock.Symbol,
-                    StockName = t.Stock.Name,
+                    StockSymbol = t.Stock != null ? t.Stock.Symbol : string.Empty,
+                    StockName = t.Stock != null ? t.Stock.Name : string.Empty,
                     EntryPrice = t.EntryPrice,
                     PNL = t.PNL,
                     Date = t.Date,
@@ -109,8 +114,8 @@ namespace backend.Controllers
             {
                 Id = trade.Id,
                 StockId = trade.StockId,
-                StockSymbol = trade.Stock.Symbol,
-                StockName = trade.Stock.Name,
+                StockSymbol = trade.Stock != null ? trade.Stock.Symbol : string.Empty,
+                StockName = trade.Stock != null ? trade.Stock.Name : string.Empty,
                 EntryPrice = trade.EntryPrice,
                 PNL = trade.PNL,
                 Date = trade.Date,
