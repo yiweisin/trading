@@ -1,15 +1,15 @@
 import "./globals.css";
-import { AuthProvider } from "@/components/AuthProvider";
+import { AuthProvider } from "@/hooks/useAuth";
 
 export const metadata = {
-  title: "Firebase Auth App",
-  description: "Authentication app with Firebase and Next.js 14",
+  title: "Bybit Trading App",
+  description: "Multi-account trading interface for Bybit",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-gray-900 text-white">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

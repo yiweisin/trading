@@ -3,34 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 
-export default function Login() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
     try {
       await login(email, password);
-      router.push("/dashboard");
+      router.push("/");
     } catch (error) {
       setError(error.message);
     } finally {
@@ -39,57 +29,59 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-gray-800 p-8 rounded-lg shadow-lg">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
+          <p className="text-gray-400 mt-2">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 text-red-400 text-sm">
               {error}
             </div>
           )}
 
-          <Input
-            icon={Mail}
+          <input
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
             required
           />
 
-          <Input
-            icon={Lock}
+          <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
             required
           />
 
-          <Button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 disabled:opacity-50"
+          >
             {loading ? "Signing In..." : "Sign In"}
-          </Button>
+          </button>
         </form>
 
         <div className="mt-6 text-center space-y-2">
           <Link
             href="/forgot-password"
-            className="text-blue-600 hover:text-blue-700 text-sm"
+            className="text-blue-400 hover:text-blue-300 text-sm"
           >
             Forgot your password?
           </Link>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-400 text-sm">
             Don't have an account?{" "}
             <Link
               href="/register"
-              className="text-blue-600 hover:text-blue-700"
+              className="text-blue-400 hover:text-blue-300"
             >
               Sign up
             </Link>

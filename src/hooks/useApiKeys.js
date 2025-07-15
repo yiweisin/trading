@@ -4,20 +4,30 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { encryptData, decryptData } from "@/lib/encryption";
+import CryptoJS from "crypto-js";
+
+const ENCRYPTION_KEY =
+  process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "your-secret-key-here";
+
+const encryptData = (data) =>
+  CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
+const decryptData = (encryptedData) => {
+  try {
+    const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
+    return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+  } catch (error) {
+    return null;
+  }
+};
 
 export const useApiKeys = () => {
   const [apiKeys, setApiKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchApiKeys();
-    }
-  }, [user]);
-
   const fetchApiKeys = async () => {
+    if (!user) return;
+
     try {
       const docRef = doc(db, "userApiKeys", user.uid);
       const docSnap = await getDoc(docRef);
@@ -39,16 +49,16 @@ export const useApiKeys = () => {
   };
 
   const addApiKey = async (keyData) => {
-    try {
-      const newKey = {
-        id: Date.now().toString(),
-        name: keyData.name,
-        encryptedApiKey: encryptData(keyData.apiKey),
-        encryptedApiSecret: encryptData(keyData.apiSecret),
-        testnet: keyData.testnet,
-        createdAt: new Date().toISOString(),
-      };
+    const newKey = {
+      id: Date.now().toString(),
+      name: keyData.name,
+      encryptedApiKey: encryptData(keyData.apiKey),
+      encryptedApiSecret: encryptData(keyData.apiSecret),
+      testnet: keyData.testnet,
+      createdAt: new Date().toISOString(),
+    };
 
+    try {
       const docRef = doc(db, "userApiKeys", user.uid);
       const docSnap = await getDoc(docRef);
 
@@ -93,11 +103,9 @@ export const useApiKeys = () => {
     }
   };
 
-  return {
-    apiKeys,
-    loading,
-    addApiKey,
-    removeApiKey,
-    refetch: fetchApiKeys,
-  };
+  useEffect(() => {
+    fetchApiKeys();
+  }, [user]);
+
+  return { apiKeys, loading, addApiKey, removeApiKey, refetch: fetchApiKeys };
 };

@@ -5,7 +5,13 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import PositionCard from "./PositionCard";
 import LeverageControl from "./LeverageControl";
-import { RefreshCw, TrendingUp, List, AlertCircle } from "lucide-react";
+import {
+  RefreshCw,
+  TrendingUp,
+  List,
+  AlertCircle,
+  TrendingDown,
+} from "lucide-react";
 
 export default function AccountTradingCard({ apiKey, onRefresh, loading }) {
   const [activeTab, setActiveTab] = useState("positions");
@@ -16,6 +22,7 @@ export default function AccountTradingCard({ apiKey, onRefresh, loading }) {
     error: null,
   });
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [closingAll, setClosingAll] = useState(false);
 
   useEffect(() => {
     if (apiKey) {
@@ -69,12 +76,69 @@ export default function AccountTradingCard({ apiKey, onRefresh, loading }) {
     }
   };
 
+  const handleCloseAllPositions = async () => {
+    const openPositions = accountData.positions.filter(
+      (p) => parseFloat(p.size || 0) > 0
+    );
+
+    if (openPositions.length === 0) {
+      alert("No open positions to close");
+      return;
+    }
+
+    const positionsList = openPositions
+      .map((p) => `${p.side} ${p.size} ${p.symbol}`)
+      .join(", ");
+
+    if (
+      !confirm(
+        `Are you sure you want to close ALL ${openPositions.length} positions?\n\nPositions: ${positionsList}`
+      )
+    ) {
+      return;
+    }
+
+    setClosingAll(true);
+    try {
+      const { BybitAPI } = await import("@/lib/bybit");
+      const api = new BybitAPI(apiKey.apiKey, apiKey.apiSecret, apiKey.testnet);
+
+      const result = await api.closeAllPositions();
+
+      if (result.success) {
+        const { successCount, totalCount, closedPositions } = result;
+
+        if (successCount === totalCount) {
+          alert(`✅ All ${successCount} positions closed successfully!`);
+        } else {
+          const failedPositions = closedPositions
+            .filter((p) => !p.success)
+            .map((p) => `${p.symbol}: ${p.error}`)
+            .join("\n");
+
+          alert(
+            `⚠️ ${successCount}/${totalCount} positions closed successfully.\n\nFailed:\n${failedPositions}`
+          );
+        }
+
+        // Refresh data after closing
+        setTimeout(fetchAccountData, 1000);
+      }
+    } catch (error) {
+      console.error("Failed to close all positions:", error);
+      alert(`❌ Failed to close positions: ${error.message}`);
+    } finally {
+      setClosingAll(false);
+    }
+  };
+
   const tabs = [
     {
       id: "positions",
       label: "Positions",
       icon: TrendingUp,
-      count: accountData.positions.length,
+      count: accountData.positions.filter((p) => parseFloat(p.size || 0) > 0)
+        .length,
     },
     {
       id: "orders",
@@ -142,6 +206,9 @@ export default function AccountTradingCard({ apiKey, onRefresh, loading }) {
                     : "text-red-600"
                 }`}
               >
+                {parseFloat(accountData.balance.totalUnrealisedPnl || 0) >= 0
+                  ? "+"
+                  : ""}
                 $
                 {parseFloat(
                   accountData.balance.totalUnrealisedPnl || 0
@@ -149,7 +216,7 @@ export default function AccountTradingCard({ apiKey, onRefresh, loading }) {
               </span>
             </div>
             <div>
-              <span className="text-gray-600">Margin Used:</span>
+              <span className="text-gray-600">Used Margin:</span>
               <span className="ml-1 font-medium">
                 $
                 {parseFloat(
@@ -206,6 +273,37 @@ export default function AccountTradingCard({ apiKey, onRefresh, loading }) {
       <div className="min-h-32">
         {activeTab === "positions" && (
           <div>
+            {/* Close All Button */}
+            {accountData.positions.filter((p) => parseFloat(p.size || 0) > 0)
+              .length > 0 && (
+              <div className="flex justify-end mb-4">
+                <Button
+                  variant="ghost"
+                  onClick={handleCloseAllPositions}
+                  disabled={closingAll}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  {closingAll ? (
+                    <>
+                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent mr-2"></div>
+                      Closing All...
+                    </>
+                  ) : (
+                    <>
+                      <TrendingDown className="w-4 h-4 mr-2" />
+                      Close All Positions (
+                      {
+                        accountData.positions.filter(
+                          (p) => parseFloat(p.size || 0) > 0
+                        ).length
+                      }
+                      )
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
             {accountData.positions.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <TrendingUp className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -219,6 +317,7 @@ export default function AccountTradingCard({ apiKey, onRefresh, loading }) {
                     position={position}
                     selectedKey={apiKey}
                     onLeverageUpdate={fetchAccountData}
+                    onPositionClosed={fetchAccountData}
                   />
                 ))}
               </div>

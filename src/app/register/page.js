@@ -3,29 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 
-export default function Register() {
+export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const { signup } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!email || !password || !confirmPassword || !displayName) {
-      setError("Please fill in all fields");
-      return;
-    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -42,7 +33,7 @@ export default function Register() {
 
     try {
       await signup(email, password, displayName);
-      router.push("/dashboard");
+      router.push("/");
     } catch (error) {
       setError(error.message);
     } finally {
@@ -51,69 +42,69 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-gray-800 p-8 rounded-lg shadow-lg">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-          <p className="text-gray-600 mt-2">Join us today</p>
+          <h2 className="text-3xl font-bold text-white">Create Account</h2>
+          <p className="text-gray-400 mt-2">Join us today</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 text-red-400 text-sm">
               {error}
             </div>
           )}
 
-          <Input
-            icon={User}
+          <input
             type="text"
             placeholder="Display Name"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            disabled={loading}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
             required
           />
 
-          <Input
-            icon={Mail}
+          <input
             type="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
             required
           />
 
-          <Input
-            icon={Lock}
+          <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
             required
           />
 
-          <Input
-            icon={Lock}
+          <input
             type="password"
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={loading}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
             required
           />
 
-          <Button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 disabled:opacity-50"
+          >
             {loading ? "Creating Account..." : "Create Account"}
-          </Button>
+          </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-400 text-sm">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 hover:text-blue-700">
+            <Link href="/login" className="text-blue-400 hover:text-blue-300">
               Sign in
             </Link>
           </p>
