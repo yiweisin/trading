@@ -23,8 +23,11 @@ export default function TradingPage() {
       price: "",
       reduceOnly: false,
     });
+    const [orderMode, setOrderMode] = useState("quantity"); // "quantity" or "cost"
     const [accountOrders, setAccountOrders] = useState([]);
     const [showConfirmation, setShowConfirmation] = useState(false);
+    const [marketPrices, setMarketPrices] = useState({});
+    const [loadingPrices, setLoadingPrices] = useState(false);
 
     const popularSymbols = [
       "BTCUSDT",
@@ -39,18 +42,141 @@ export default function TradingPage() {
 
     useEffect(() => {
       if (apiKeys.length > 0 && accountOrders.length === 0) {
+        const effectivePrice = getEffectivePrice();
+        const initialQty =
+          effectivePrice > 0 ? (100 / effectivePrice).toFixed(6) : "0.001";
+
         setAccountOrders([
           {
             id: Date.now(),
             apiKeyId: apiKeys[0].id,
-            qty: "0.001",
+            qty: initialQty,
+            cost: "100",
             enabled: true,
           },
         ]);
       }
     }, [apiKeys]);
 
-    const handleSubmit = (e) => {
+    // Fetch current market price for cost calculations
+    const fetchMarketPrice = async (symbol) => {
+      if (!apiKeys.length) return null;
+
+      setLoadingPrices(true);
+      try {
+        const { BybitAPI } = await import("@/lib/bybit");
+        const api = new BybitAPI(
+          apiKeys[0].apiKey,
+          apiKeys[0].apiSecret,
+          apiKeys[0].testnet
+        );
+
+        const response = await api.getMarketPrice(symbol);
+        const price = parseFloat(response?.result?.list?.[0]?.markPrice || 0);
+
+        setMarketPrices((prev) => ({
+          ...prev,
+          [symbol]: price,
+        }));
+
+        return price;
+      } catch (error) {
+        console.error("Error fetching market price:", error);
+        return null;
+      } finally {
+        setLoadingPrices(false);
+      }
+    };
+
+    // Fetch market price when symbol changes
+    useEffect(() => {
+      if (orderMode === "cost" && orderData.symbol) {
+        fetchMarketPrice(orderData.symbol);
+      }
+    }, [orderData.symbol, orderMode]);
+
+    // Recalculate quantities when price changes in order value mode
+    useEffect(() => {
+      if (orderMode === "cost" && marketPrices[orderData.symbol]) {
+        const effectivePrice = getEffectivePrice();
+        if (effectivePrice > 0) {
+          // Recalculate quantities for all enabled orders
+          accountOrders.forEach(async (order) => {
+            if (order.cost && order.enabled && parseFloat(order.cost) > 0) {
+              try {
+                const newQty = await calculateQuantityFromCost(
+                  order.cost,
+                  effectivePrice,
+                  orderData.symbol
+                );
+                setAccountOrders((currentOrders) =>
+                  currentOrders.map((o) =>
+                    o.id === order.id ? { ...o, qty: newQty } : o
+                  )
+                );
+              } catch (error) {
+                console.error("Error recalculating quantity:", error);
+              }
+            }
+          });
+        }
+      }
+    }, [marketPrices[orderData.symbol], orderMode]);
+
+    // Calculate quantity from order value
+    const calculateQuantityFromCost = async (cost, price, symbol) => {
+      if (!cost || !price || !symbol) return "0";
+
+      try {
+        // Simple calculation first
+        const simpleQty = parseFloat(cost) / parseFloat(price);
+        if (isNaN(simpleQty) || simpleQty <= 0) return "0";
+
+        // Try to get proper formatting from API
+        const { BybitAPI } = await import("@/lib/bybit");
+        const api = new BybitAPI(
+          apiKeys[0].apiKey,
+          apiKeys[0].apiSecret,
+          apiKeys[0].testnet
+        );
+
+        const formattedQty = await api.calculateQuantityFromCost(
+          symbol,
+          cost,
+          price
+        );
+        return formattedQty || simpleQty.toFixed(6);
+      } catch (error) {
+        console.error("Error calculating quantity:", error);
+        // Fallback to simple calculation
+        const fallbackQty = parseFloat(cost) / parseFloat(price);
+        return isNaN(fallbackQty) ? "0" : fallbackQty.toFixed(6);
+      }
+    };
+
+    // Calculate order value from quantity
+    const calculateCostFromQuantity = (qty, price) => {
+      if (
+        !qty ||
+        !price ||
+        isNaN(parseFloat(qty)) ||
+        isNaN(parseFloat(price))
+      ) {
+        return "0";
+      }
+      const cost = parseFloat(qty) * parseFloat(price);
+      return isNaN(cost) ? "0" : cost.toFixed(2);
+    };
+
+    // Get effective price for calculations
+    const getEffectivePrice = () => {
+      if (orderData.orderType === "Limit" && orderData.price) {
+        return parseFloat(orderData.price);
+      }
+      return marketPrices[orderData.symbol] || 0;
+    };
+
+    const handleSubmit = async (e) => {
       e.preventDefault();
       const enabledOrders = accountOrders.filter((order) => order.enabled);
       const hasMainnetAccount = enabledOrders.some((order) => {
@@ -63,34 +189,64 @@ export default function TradingPage() {
         return;
       }
 
-      const ordersToPlace = enabledOrders.map((accountOrder) => {
-        const apiKey = apiKeys.find((k) => k.id === accountOrder.apiKeyId);
-        return {
-          apiKey,
-          orderData: {
-            symbol: orderData.symbol.toUpperCase(),
-            side: orderData.side,
-            orderType: orderData.orderType,
-            qty: parseFloat(accountOrder.qty).toString(),
-            ...(orderData.orderType === "Limit" && {
-              price: parseFloat(orderData.price).toString(),
-            }),
-            ...(orderData.reduceOnly && { reduceOnly: true }),
-          },
-        };
-      });
+      const effectivePrice = getEffectivePrice();
+
+      if (effectivePrice <= 0 && orderMode === "cost") {
+        alert("Unable to get current price. Please try again.");
+        return;
+      }
+
+      const ordersToPlace = await Promise.all(
+        enabledOrders.map(async (accountOrder) => {
+          const apiKey = apiKeys.find((k) => k.id === accountOrder.apiKeyId);
+
+          // Calculate final quantity based on order mode
+          let finalQty;
+          if (orderMode === "cost") {
+            finalQty = await calculateQuantityFromCost(
+              accountOrder.cost,
+              effectivePrice,
+              orderData.symbol
+            );
+          } else {
+            finalQty = accountOrder.qty;
+          }
+
+          return {
+            apiKey,
+            orderData: {
+              symbol: orderData.symbol.toUpperCase(),
+              side: orderData.side,
+              orderType: orderData.orderType,
+              qty: finalQty,
+              ...(orderData.orderType === "Limit" && {
+                price: parseFloat(orderData.price).toString(),
+              }),
+              ...(orderData.reduceOnly && { reduceOnly: true }),
+            },
+          };
+        })
+      );
 
       handleMultiOrderSubmit(ordersToPlace);
       setShowConfirmation(false);
     };
 
     const addAccount = () => {
+      const effectivePrice = getEffectivePrice();
+      const initialCost = "100";
+      const initialQty =
+        effectivePrice > 0
+          ? (parseFloat(initialCost) / effectivePrice).toFixed(6)
+          : "0.001";
+
       setAccountOrders([
         ...accountOrders,
         {
           id: Date.now(),
           apiKeyId: apiKeys[0]?.id || "",
-          qty: "0.001",
+          qty: initialQty,
+          cost: initialCost,
           enabled: true,
         },
       ]);
@@ -98,6 +254,56 @@ export default function TradingPage() {
 
     const removeAccount = (id) => {
       setAccountOrders(accountOrders.filter((order) => order.id !== id));
+    };
+
+    const updateAccountOrder = (id, field, value) => {
+      setAccountOrders((prevOrders) => {
+        const effectivePrice = getEffectivePrice();
+
+        return prevOrders.map((order) => {
+          if (order.id !== id) return order;
+
+          const updated = { ...order, [field]: value };
+
+          // Auto-calculate the other field when one changes
+          if (effectivePrice > 0) {
+            if (field === "qty" && orderMode === "quantity") {
+              updated.cost = calculateCostFromQuantity(value, effectivePrice);
+            } else if (field === "cost" && orderMode === "cost") {
+              // Set a temporary calculated value while we fetch the precise one
+              const tempQty =
+                value && effectivePrice
+                  ? (parseFloat(value) / parseFloat(effectivePrice)).toFixed(6)
+                  : "0";
+              updated.qty = tempQty;
+
+              // Calculate precise quantity async
+              if (value && effectivePrice && parseFloat(value) > 0) {
+                calculateQuantityFromCost(
+                  value,
+                  effectivePrice,
+                  orderData.symbol
+                )
+                  .then((preciseQty) => {
+                    console.log(
+                      `Calculated quantity for ${orderData.symbol}: ${value} / ${effectivePrice} = ${preciseQty}`
+                    );
+                    setAccountOrders((currentOrders) =>
+                      currentOrders.map((o) =>
+                        o.id === id ? { ...o, qty: preciseQty } : o
+                      )
+                    );
+                  })
+                  .catch((error) => {
+                    console.error("Error calculating precise quantity:", error);
+                  });
+              }
+            }
+          }
+
+          return updated;
+        });
+      });
     };
 
     return (
@@ -192,6 +398,90 @@ export default function TradingPage() {
               )}
             </div>
 
+            {/* Order Mode Toggle */}
+            <div className="order-mode-selector">
+              <label className="form-label">Order Mode</label>
+              <div className="mode-toggle">
+                <button
+                  type="button"
+                  className={`mode-btn ${
+                    orderMode === "quantity" ? "active" : ""
+                  }`}
+                  onClick={() => setOrderMode("quantity")}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M7 10v12M15 5v17M11 6v16" />
+                  </svg>
+                  By Quantity
+                </button>
+                <button
+                  type="button"
+                  className={`mode-btn ${orderMode === "cost" ? "active" : ""}`}
+                  onClick={() => setOrderMode("cost")}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                  </svg>
+                  Order Value
+                </button>
+              </div>
+            </div>
+
+            {/* Market Price Display */}
+            {orderMode === "cost" && (
+              <div className="market-price-display">
+                <div className="price-info">
+                  <span className="price-label">
+                    {orderData.orderType === "Market"
+                      ? "Market Price"
+                      : "Order Price"}
+                    :
+                  </span>
+                  <span className="price-value">
+                    {loadingPrices ? (
+                      <div className="loading-spinner small"></div>
+                    ) : (
+                      `${getEffectivePrice().toLocaleString()}`
+                    )}
+                  </span>
+                </div>
+                {orderData.orderType === "Market" && (
+                  <button
+                    type="button"
+                    onClick={() => fetchMarketPrice(orderData.symbol)}
+                    className="btn btn-ghost btn-sm"
+                    disabled={loadingPrices}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Options */}
             <div className="flex items-center gap-md">
               <label className="flex items-center gap-sm">
@@ -221,6 +511,8 @@ export default function TradingPage() {
                   const apiKey = apiKeys.find(
                     (k) => k.id === accountOrder.apiKeyId
                   );
+                  const effectivePrice = getEffectivePrice();
+
                   return (
                     <div
                       key={accountOrder.id}
@@ -232,12 +524,10 @@ export default function TradingPage() {
                         type="checkbox"
                         checked={accountOrder.enabled}
                         onChange={() =>
-                          setAccountOrders(
-                            accountOrders.map((order) =>
-                              order.id === accountOrder.id
-                                ? { ...order, enabled: !order.enabled }
-                                : order
-                            )
+                          updateAccountOrder(
+                            accountOrder.id,
+                            "enabled",
+                            !accountOrder.enabled
                           )
                         }
                         className="account-checkbox"
@@ -247,12 +537,10 @@ export default function TradingPage() {
                         <select
                           value={accountOrder.apiKeyId}
                           onChange={(e) =>
-                            setAccountOrders(
-                              accountOrders.map((order) =>
-                                order.id === accountOrder.id
-                                  ? { ...order, apiKeyId: e.target.value }
-                                  : order
-                              )
+                            updateAccountOrder(
+                              accountOrder.id,
+                              "apiKeyId",
+                              e.target.value
                             )
                           }
                           className="form-select"
@@ -275,23 +563,70 @@ export default function TradingPage() {
                         </div>
                       </div>
 
-                      <input
-                        type="number"
-                        step="0.001"
-                        placeholder="0.001"
-                        value={accountOrder.qty}
-                        onChange={(e) =>
-                          setAccountOrders(
-                            accountOrders.map((order) =>
-                              order.id === accountOrder.id
-                                ? { ...order, qty: e.target.value }
-                                : order
-                            )
-                          )
-                        }
-                        className="quantity-input"
-                        disabled={!accountOrder.enabled}
-                      />
+                      <div className="order-inputs">
+                        {orderMode === "cost" ? (
+                          <div className="input-group">
+                            <span className="input-prefix">$</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              placeholder="100.00"
+                              value={accountOrder.cost}
+                              onChange={(e) =>
+                                updateAccountOrder(
+                                  accountOrder.id,
+                                  "cost",
+                                  e.target.value
+                                )
+                              }
+                              className="value-input"
+                              disabled={!accountOrder.enabled}
+                              title="Order value in USD"
+                            />
+                          </div>
+                        ) : (
+                          <input
+                            type="number"
+                            step="0.001"
+                            placeholder="0.001"
+                            value={accountOrder.qty}
+                            onChange={(e) =>
+                              updateAccountOrder(
+                                accountOrder.id,
+                                "qty",
+                                e.target.value
+                              )
+                            }
+                            className="quantity-input"
+                            disabled={!accountOrder.enabled}
+                          />
+                        )}
+
+                        {/* Show calculated value */}
+                        {effectivePrice > 0 && accountOrder.enabled && (
+                          <div className="calculated-value">
+                            {orderMode === "cost" ? (
+                              <span className="text-xs text-secondary">
+                                ≈{" "}
+                                {accountOrder.qty &&
+                                !isNaN(parseFloat(accountOrder.qty))
+                                  ? parseFloat(accountOrder.qty).toFixed(6)
+                                  : "0"}{" "}
+                                {orderData.symbol.replace("USDT", "")}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-secondary">
+                                ≈ $
+                                {calculateCostFromQuantity(
+                                  accountOrder.qty,
+                                  effectivePrice
+                                )}{" "}
+                                value
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
 
                       {accountOrders.length > 1 && (
                         <button
@@ -356,13 +691,43 @@ export default function TradingPage() {
               </div>
             )}
 
+            {/* Error handling for order value mode */}
+            {orderMode === "cost" &&
+              getEffectivePrice() === 0 &&
+              !loadingPrices && (
+                <div className="alert error">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <h4 className="font-semibold mb-sm">Price Required</h4>
+                    <p className="text-sm">
+                      Unable to fetch current price. Please{" "}
+                      {orderData.orderType === "Limit"
+                        ? "enter a limit price"
+                        : "try refreshing the market price"}
+                      .
+                    </p>
+                  </div>
+                </div>
+              )}
+
             {/* Submit */}
             {!showConfirmation && (
               <button
                 type="submit"
                 disabled={
                   placingOrders ||
-                  accountOrders.filter((o) => o.enabled).length === 0
+                  accountOrders.filter((o) => o.enabled).length === 0 ||
+                  (orderMode === "cost" && getEffectivePrice() === 0) ||
+                  loadingPrices
                 }
                 className="btn btn-primary btn-lg w-full"
               >
@@ -370,6 +735,11 @@ export default function TradingPage() {
                   <div className="flex items-center gap-sm">
                     <div className="loading-spinner"></div>
                     Placing Orders...
+                  </div>
+                ) : loadingPrices ? (
+                  <div className="flex items-center gap-sm">
+                    <div className="loading-spinner"></div>
+                    Loading Price...
                   </div>
                 ) : (
                   `Place ${orderData.side} Orders (${
@@ -384,7 +754,7 @@ export default function TradingPage() {
     );
   };
 
-  // Account Overview Component
+  // Account Overview Component (keeping the same as before)
   const AccountOverview = ({ apiKey }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [activeTab, setActiveTab] = useState("positions");
@@ -973,6 +1343,127 @@ export default function TradingPage() {
       </div>
 
       <style jsx>{`
+        /* New styles for the order value option */
+        .order-mode-selector {
+          margin-bottom: var(--space-lg);
+        }
+
+        .mode-toggle {
+          display: flex;
+          gap: 0;
+          border: 1px solid var(--border-primary);
+          border-radius: var(--border-radius);
+          overflow: hidden;
+        }
+
+        .mode-btn {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--space-sm);
+          padding: var(--space-sm) var(--space-md);
+          background: var(--bg-tertiary);
+          border: none;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: var(--transition);
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+
+        .mode-btn:hover {
+          background: var(--bg-hover);
+          color: var(--text-primary);
+        }
+
+        .mode-btn.active {
+          background: var(--accent-gold);
+          color: var(--text-inverse);
+        }
+
+        .market-price-display {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: var(--space-md);
+          background: var(--bg-tertiary);
+          border: 1px solid var(--border-secondary);
+          border-radius: var(--border-radius);
+          margin-bottom: var(--space-lg);
+        }
+
+        .price-info {
+          display: flex;
+          align-items: center;
+          gap: var(--space-sm);
+        }
+
+        .price-label {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
+
+        .price-value {
+          font-size: 1rem;
+          color: var(--text-primary);
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: var(--space-xs);
+        }
+
+        .order-inputs {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-xs);
+          min-width: 120px;
+        }
+
+        .input-group {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .input-prefix {
+          position: absolute;
+          left: var(--space-sm);
+          color: var(--text-muted);
+          font-weight: 500;
+          z-index: 1;
+        }
+
+        .value-input {
+          width: 100%;
+          padding: var(--space-xs) var(--space-sm);
+          padding-left: 1.5rem;
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-secondary);
+          border-radius: var(--border-radius);
+          color: var(--text-primary);
+          font-size: 0.875rem;
+          text-align: right;
+        }
+
+        .value-input:focus {
+          outline: none;
+          border-color: var(--accent-gold);
+          box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+        }
+
+        .calculated-value {
+          text-align: center;
+          margin-top: var(--space-xs);
+        }
+
+        .loading-spinner.small {
+          width: 1rem;
+          height: 1rem;
+          border-width: 2px;
+        }
+
         .animate-spin {
           animation: spin 1s linear infinite;
         }
@@ -987,6 +1478,10 @@ export default function TradingPage() {
 
         .text-sm {
           font-size: 0.875rem;
+        }
+
+        .text-xs {
+          font-size: 0.75rem;
         }
 
         .text-secondary {
@@ -1007,6 +1502,26 @@ export default function TradingPage() {
 
         .tab-content {
           margin-top: var(--space-lg);
+        }
+
+        @media (max-width: 768px) {
+          .market-price-display {
+            flex-direction: column;
+            gap: var(--space-sm);
+            align-items: stretch;
+          }
+
+          .price-info {
+            justify-content: center;
+          }
+
+          .mode-toggle {
+            flex-direction: column;
+          }
+
+          .order-inputs {
+            min-width: 100px;
+          }
         }
       `}</style>
     </ProtectedRoute>
