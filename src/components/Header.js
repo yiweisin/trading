@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import Link from "next/link";
 
 export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -78,7 +79,7 @@ export default function Header() {
       <div className="header-content">
         {/* Brand */}
         <div className="header-brand">
-          <a href="/" className="brand-logo">
+          <Link href="/" className="brand-logo">
             <div className="logo-icon">
               <svg
                 width="20"
@@ -92,7 +93,7 @@ export default function Header() {
               </svg>
             </div>
             <span className="brand-text">TradeLux</span>
-          </a>
+          </Link>
         </div>
 
         {/* Desktop Navigation */}

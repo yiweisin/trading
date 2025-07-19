@@ -107,5 +107,12 @@ export const useApiKeys = () => {
     fetchApiKeys();
   }, [user]);
 
-  return { apiKeys, loading, addApiKey, removeApiKey, refetch: fetchApiKeys };
+  return {
+    apiKeys,
+    loading,
+    addApiKey,
+    removeApiKey,
+    fetchApiKeys,
+    refetch: fetchApiKeys,
+  };
 };
