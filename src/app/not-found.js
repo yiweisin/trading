@@ -26,7 +26,8 @@ export default function NotFound() {
             <h1 className="error-code">404</h1>
             <h2 className="error-title">Page Not Found</h2>
             <p className="error-description">
-              The page you&apos;re looking for doesn't exist or has been moved.
+              The page you&apos;re looking for doesn&apos;t exist or has been
+              moved.
             </p>
           </div>
 
