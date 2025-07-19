@@ -18,6 +18,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Only set up auth listener if Firebase auth is available
+    if (!auth) {
+      console.warn("Firebase auth not available");
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(
         user
@@ -35,15 +42,34 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signup = (email, password, displayName) => {
+    if (!auth) {
+      throw new Error("Firebase auth not available");
+    }
     return createUserWithEmailAndPassword(auth, email, password).then(
       (result) => updateProfile(result.user, { displayName })
     );
   };
 
-  const login = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
-  const logout = () => signOut(auth);
-  const resetPassword = (email) => sendPasswordResetEmail(auth, email);
+  const login = (email, password) => {
+    if (!auth) {
+      throw new Error("Firebase auth not available");
+    }
+    return signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const logout = () => {
+    if (!auth) {
+      throw new Error("Firebase auth not available");
+    }
+    return signOut(auth);
+  };
+
+  const resetPassword = (email) => {
+    if (!auth) {
+      throw new Error("Firebase auth not available");
+    }
+    return sendPasswordResetEmail(auth, email);
+  };
 
   return (
     <AuthContext.Provider

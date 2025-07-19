@@ -26,7 +26,10 @@ export const useApiKeys = () => {
   const { user } = useAuth();
 
   const fetchApiKeys = async () => {
-    if (!user) return;
+    if (!user || !db) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const docRef = doc(db, "userApiKeys", user.uid);
@@ -49,6 +52,10 @@ export const useApiKeys = () => {
   };
 
   const addApiKey = async (keyData) => {
+    if (!user || !db) {
+      throw new Error("Database not available");
+    }
+
     const newKey = {
       id: Date.now().toString(),
       name: keyData.name,
@@ -82,6 +89,10 @@ export const useApiKeys = () => {
   };
 
   const removeApiKey = async (keyId) => {
+    if (!user || !db) {
+      throw new Error("Database not available");
+    }
+
     try {
       const docRef = doc(db, "userApiKeys", user.uid);
       const docSnap = await getDoc(docRef);
