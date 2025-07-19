@@ -20,10 +20,11 @@ export default function TradingPage() {
       symbol: "BTCUSDT",
       side: "Buy",
       orderType: "Market",
+      orderMode: "quantity",
       price: "",
       reduceOnly: false,
     });
-    const [orderMode, setOrderMode] = useState("quantity"); // "quantity" or "cost"
+
     const [accountOrders, setAccountOrders] = useState([]);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [marketPrices, setMarketPrices] = useState({});
@@ -90,14 +91,14 @@ export default function TradingPage() {
 
     // Fetch market price when symbol changes
     useEffect(() => {
-      if (orderMode === "cost" && orderData.symbol) {
+      if (orderData.orderMode === "cost" && orderData.symbol) {
         fetchMarketPrice(orderData.symbol);
       }
-    }, [orderData.symbol, orderMode]);
+    }, [orderData.symbol, orderData.orderMode]);
 
     // Recalculate quantities when price changes in order value mode
     useEffect(() => {
-      if (orderMode === "cost" && marketPrices[orderData.symbol]) {
+      if (orderData.orderMode === "cost" && marketPrices[orderData.symbol]) {
         const effectivePrice = getEffectivePrice();
         if (effectivePrice > 0) {
           // Recalculate quantities for all enabled orders
@@ -121,7 +122,7 @@ export default function TradingPage() {
           });
         }
       }
-    }, [marketPrices[orderData.symbol], orderMode]);
+    }, [marketPrices[orderData.symbol], orderData.orderMode]);
 
     // Calculate quantity from order value
     const calculateQuantityFromCost = async (cost, price, symbol) => {
@@ -191,7 +192,7 @@ export default function TradingPage() {
 
       const effectivePrice = getEffectivePrice();
 
-      if (effectivePrice <= 0 && orderMode === "cost") {
+      if (effectivePrice <= 0 && orderData.orderMode === "cost") {
         alert("Unable to get current price. Please try again.");
         return;
       }
@@ -202,7 +203,7 @@ export default function TradingPage() {
 
           // Calculate final quantity based on order mode
           let finalQty;
-          if (orderMode === "cost") {
+          if (orderData.orderMode === "cost") {
             finalQty = await calculateQuantityFromCost(
               accountOrder.cost,
               effectivePrice,
@@ -267,9 +268,9 @@ export default function TradingPage() {
 
           // Auto-calculate the other field when one changes
           if (effectivePrice > 0) {
-            if (field === "qty" && orderMode === "quantity") {
+            if (field === "qty" && orderData.orderMode === "quantity") {
               updated.cost = calculateCostFromQuantity(value, effectivePrice);
-            } else if (field === "cost" && orderMode === "cost") {
+            } else if (field === "cost" && orderData.orderMode === "cost") {
               // Set a temporary calculated value while we fetch the precise one
               const tempQty =
                 value && effectivePrice
@@ -353,6 +354,20 @@ export default function TradingPage() {
               </div>
 
               <div className="form-group">
+                <label className="form-label">Order By</label>
+                <select
+                  value={orderData.orderMode}
+                  onChange={(e) =>
+                    setOrderData({ ...orderData, orderMode: e.target.value })
+                  }
+                  className="form-select"
+                >
+                  <option value="quantity">Quantity</option>
+                  <option value="cost">Order Value</option>
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Side</label>
                 <select
                   value={orderData.side}
@@ -398,51 +413,8 @@ export default function TradingPage() {
               )}
             </div>
 
-            {/* Order Mode Toggle */}
-            <div className="order-mode-selector">
-              <label className="form-label">Order Mode</label>
-              <div className="mode-toggle">
-                <button
-                  type="button"
-                  className={`mode-btn ${
-                    orderMode === "quantity" ? "active" : ""
-                  }`}
-                  onClick={() => setOrderMode("quantity")}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M7 10v12M15 5v17M11 6v16" />
-                  </svg>
-                  By Quantity
-                </button>
-                <button
-                  type="button"
-                  className={`mode-btn ${orderMode === "cost" ? "active" : ""}`}
-                  onClick={() => setOrderMode("cost")}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                  </svg>
-                  Order Value
-                </button>
-              </div>
-            </div>
-
             {/* Market Price Display */}
-            {orderMode === "cost" && (
+            {orderData.orderMode === "cost" && (
               <div className="market-price-display">
                 <div className="price-info">
                   <span className="price-label">
@@ -564,7 +536,7 @@ export default function TradingPage() {
                       </div>
 
                       <div className="order-inputs">
-                        {orderMode === "cost" ? (
+                        {orderData.orderMode === "cost" ? (
                           <div className="input-group">
                             <span className="input-prefix">$</span>
                             <input
@@ -605,7 +577,7 @@ export default function TradingPage() {
                         {/* Show calculated value */}
                         {effectivePrice > 0 && accountOrder.enabled && (
                           <div className="calculated-value">
-                            {orderMode === "cost" ? (
+                            {orderData.orderMode === "cost" ? (
                               <span className="text-xs text-secondary">
                                 ≈{" "}
                                 {accountOrder.qty &&
@@ -692,7 +664,7 @@ export default function TradingPage() {
             )}
 
             {/* Error handling for order value mode */}
-            {orderMode === "cost" &&
+            {orderData.orderMode === "cost" &&
               getEffectivePrice() === 0 &&
               !loadingPrices && (
                 <div className="alert error">
@@ -726,7 +698,8 @@ export default function TradingPage() {
                 disabled={
                   placingOrders ||
                   accountOrders.filter((o) => o.enabled).length === 0 ||
-                  (orderMode === "cost" && getEffectivePrice() === 0) ||
+                  (orderData.orderMode === "cost" &&
+                    getEffectivePrice() === 0) ||
                   loadingPrices
                 }
                 className="btn btn-primary btn-lg w-full"
