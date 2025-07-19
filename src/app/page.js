@@ -57,7 +57,7 @@ export default function TradingPage() {
           },
         ]);
       }
-    }, [getEffectivePrice, accountOrders.length]);
+    }, [accountOrders.length]);
 
     // Fetch current market price for cost calculations
     const fetchMarketPrice = async (symbol) => {

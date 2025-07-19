@@ -177,7 +177,7 @@ export default function LoginPage() {
               Forgot your password?
             </Link>
             <p className="auth-text">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/register" className="auth-link primary">
                 Sign up
               </Link>
