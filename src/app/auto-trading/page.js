@@ -134,8 +134,8 @@ export default function AutoTradingPage() {
                 required
               />
               <div className="form-help">
-                This should match the "strategy" field in your TradingView
-                alerts
+                This should match the &quot;strategy&quot; field in your
+                TradingView alerts
               </div>
             </div>
 
@@ -251,8 +251,8 @@ export default function AutoTradingPage() {
                               <span className="input-suffix">USD</span>
                             </div>
                             <div className="form-help">
-                              Maximum amount you're willing to lose if price
-                              hits stop loss
+                              Maximum amount you&apos;re willing to lose if
+                              price hits stop loss
                             </div>
                           </div>
 
@@ -342,9 +342,15 @@ export default function AutoTradingPage() {
               <div className="alert-format-notes">
                 <h6>Important Notes:</h6>
                 <ul>
-                  <li>Strategy name must match exactly: "{formData.name}"</li>
+                  <li>
+                    Strategy name must match exactly: &quot;{formData.name}
+                    &quot;
+                  </li>
                   <li>Entry, SL, and TP should be actual price values</li>
-                  <li>Action should be "buy" for long or "sell" for short</li>
+                  <li>
+                    Action should be &quot;buy&quot; for long or
+                    &quot;sell&quot; for short
+                  </li>
                   <li>
                     Position size is calculated automatically from damage cost
                   </li>
@@ -528,8 +534,8 @@ export default function AutoTradingPage() {
                     <div>
                       <h4>Set Maximum Loss</h4>
                       <p>
-                        Define exactly how much you're willing to lose per trade
-                        (damage cost)
+                        Define exactly how much you&apos;re willing to lose per
+                        trade (damage cost)
                       </p>
                     </div>
                   </div>
